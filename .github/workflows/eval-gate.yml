@@ -1,0 +1,44 @@
+name: AI Eval Gate
+
+on:
+  pull_request:
+    paths:
+      - 'eval/prompts/**'
+      - 'app/llm.py'
+      - 'eval/goldens.jsonl'
+      - 'eval/run_eval.py'
+      - 'scripts/eval_pipeline.py'
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests feedparser beautifulsoup4 APScheduler
+
+      - name: Run AI Eval Pipeline
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_MAX_RETRIES: '4'
+          LLM_RETRY_DELAY: '3'
+        run: python scripts/eval_pipeline.py
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: |
+            eval/.evals/history/
+            eval/.evals/detailed_report_*.json
+          retention-days: 30

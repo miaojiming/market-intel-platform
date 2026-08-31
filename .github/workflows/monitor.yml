@@ -1,0 +1,96 @@
+name: Health Check & Monitoring
+
+on:
+  schedule:
+    # 每 6 小时检查一次
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run health check
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python -c "
+          import os, sys, json, time
+          from datetime import datetime
+
+          sys.path.insert(0, '.')
+          os.environ['LLM_MAX_RETRIES'] = '2'
+          os.environ['LLM_RETRY_DELAY'] = '2'
+
+          # 1. LLM API 连通性
+          from app.llm import chat_json
+          try:
+              start = time.time()
+              result = chat_json('输出 {\"status\":\"ok\"}', temperature=0, max_tokens=100, use_json_mode=False)
+              latency = time.time() - start
+              llm_status = '✅ 正常'
+              llm_latency = f'{latency:.1f}s'
+          except Exception as e:
+              llm_status = f'❌ 异常: {e}'
+              llm_latency = 'N/A'
+
+          # 2. 基线状态
+          try:
+              with open('eval/.evals/baseline.json') as f:
+                  baseline = json.load(f)
+              baseline_score = baseline['metrics']['overall_weighted']
+              baseline_name = baseline['baseline_name']
+          except:
+              baseline_score = 0
+              baseline_name = '无基线'
+
+          # 3. 历史趋势
+          import glob
+          history_files = sorted(glob.glob('eval/.evals/history/run_*.json'))[-5:]
+          trend = []
+          for hf in history_files:
+              with open(hf) as f:
+                  h = json.load(f)
+              trend.append(h['metrics']['overall_weighted'])
+
+          # 4. 输出报告
+          print('='*50)
+          print('系统健康检查报告')
+          print(f'时间: {datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")}')
+          print('='*50)
+          print(f'LLM API: {llm_status} ({llm_latency})')
+          print(f'基线: {baseline_name} (得分 {baseline_score})')
+          print(f'最近 {len(trend)} 次评测得分: {trend}')
+          print(f'评测集: ', end='')
+
+          with open('eval/goldens.jsonl') as f:
+              count = sum(1 for line in f if line.strip())
+          print(f'{count} 条用例')
+
+          # 5. 异常告警
+          alerts = []
+          if '❌' in llm_status:
+              alerts.append('LLM API 异常!')
+          if trend and trend[-1] < baseline_score - 0.05:
+              alerts.append(f'质量回归! 最新 {trend[-1]:.2f} < 基线 {baseline_score:.2f}')
+          if alerts:
+              print()
+              print('⚠️ 告警:')
+              for a in alerts:
+                  print(f'  - {a}')
+              sys.exit(1)
+          else:
+              print()
+              print('✅ 所有检查通过')
+          "

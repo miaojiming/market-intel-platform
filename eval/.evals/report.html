@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Evals 评测报告 - GLM-5.3-Flash v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    padding: 40px 20px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  .subtitle { color: #6e6e73; font-size: 14px; margin-bottom: 32px; }
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .score-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+  .score-card .label { font-size: 12px; color: #6e6e73; margin-bottom: 8px; }
+  .score-card .value { font-size: 32px; font-weight: 700; }
+  .score-card .threshold { font-size: 11px; color: #86868b; margin-top: 4px; }
+  .pass { color: #34c759; }
+  .fail { color: #ff3b30; }
+  .warn { color: #ff9500; }
+  .case-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border-left: 4px solid #e0e0e0;
+  }
+  .case-card.pass { border-left-color: #34c759; }
+  .case-card.fail { border-left-color: #ff3b30; }
+  .case-card.warn { border-left-color: #ff9500; }
+  .case-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .case-id { font-size: 14px; font-weight: 600; color: #1d1d1f; }
+  .case-scores { display: flex; gap: 8px; }
+  .score-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .badge-pass { background: #e8f5e9; color: #2e7d32; }
+  .badge-fail { background: #ffebee; color: #c62828; }
+  .badge-warn { background: #fff3e0; color: #e65100; }
+  .case-summary {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1d1d1f;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f5f5f7;
+    border-radius: 8px;
+  }
+  .case-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: #6e6e73;
+  }
+  .tag {
+    background: #e8e8ed;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .source-link {
+    color: #0071e3;
+    text-decoration: none;
+    font-size: 12px;
+  }
+  .source-link:hover { text-decoration: underline; }
+  .importance {
+    background: #0071e3;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .importance.low { background: #86868b; }
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #d2d2d7;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Evals 评测报告</h1>
+  <p class="subtitle">模型: z-ai/glm-5.3-flash | 用例: 13条 | Prompt: v2（含来源字段 + 真实性约束）| 日期: 2026-08-30</p>
+
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="label">格式合规</div>
+      <div class="value warn">0.92</div>
+      <div class="threshold">阈值 1.0</div>
+    </div>
+    <div class="score-card">
+      <div class="label">真实性</div>
+      <div class="value warn">0.81</div>
+      <div class="threshold">阈值 0.85</div>
+    </div>
+    <div class="score-card">
+      <div class="label">综合质量</div>
+      <div class="value pass">0.88</div>
+      <div class="threshold">阈值 0.7 ✅</div>
+    </div>
+    <div class="score-card">
+      <div class="label">综合加权</div>
+      <div class="value warn">0.86</div>
+      <div class="threshold">—</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">逐条详情（含来源链接）</h2>
+  
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-001</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">Fiserv宣布2027年一季度起下调美国中小商户收单费率15%，称因规模效应及Stripe、Adyen等竞争压力，预计将加剧美国收单市场价格战，同行或被迫跟进调价。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">收单</span><span class="tag">费率</span><span class="tag">支付机构</span>
+        <span style="margin-left: auto;">来源: <a href="https://www.finextra.com/news/case-001" class="source-link">Finextra</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-002</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">印度央行RBI发布支付聚合商与商户收单机构新规，要求对高风险行业商户强化尽职调查、实施实时交易监控与商户风险评分，结算不得超T+1，Paytm等机构正调整入驻流程以合规。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">收单</span><span class="tag">合规</span><span class="tag">支付机构</span>
+        <span style="margin-left: auto;">来源: <a href="https://thepaypers.com/news/case-002" class="source-link">The Paypers</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-003</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">汇丰与Temenos签署多年期合同，将亚太18个市场的核心银行及支付系统迁移至其云原生Transact平台，以加快收单与支付产品上线、提升效率并降低长期技术成本。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">核心系统</span><span class="tag">银行IT</span><span class="tag">收单系统</span><span class="tag">系统改造</span>
+        <span style="margin-left: auto;">来源: <a href="https://www.finextra.com/news/case-003" class="source-link">Finextra</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-004</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">Airbnb宣布将全球收单合作方从Braintree更换为Adyen，2027年年中生效，覆盖220多个国家和地区，支持本地支付方式并优化授权率，为近年最大收单合约之一。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">收单</span><span class="tag">跨境收单</span><span class="tag">支付机构</span>
+        <span style="margin-left: auto;">来源: <a href="https://thepaypers.com/news/case-004" class="source-link">The Paypers</a></span>
+      </div>
+    </div>
+    <div class="case-card warn">
+      <div class="case-header">
+        <span class="case-id">case-005</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-fail">综合 0.00</span>
+        </div>
+      </div>
+      <div class="case-summary">健身连锁品牌FitZone在芝加哥地区开设第20家门店，提供团操课程，会员月费49美元起且无长期合约，计划到2028年扩展至50家门店，聚焦郊区市场。</div>
+      <div class="case-meta">
+        <span class="importance low">重要性 1</span>
+        <span class="tag">健身行业</span><span class="tag">连锁扩张</span><span class="tag">会员定价</span>
+        <span style="margin-left: auto;">来源: <a href="https://fitnessbusiness.com/news/case-005" class="source-link">Fitness Business</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-006</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">工商银行公开招标新一代收单系统，预算3.8亿元，拟以云原生架构替换运行15年的老旧收单平台，支持银行卡、二维码、NFC及数字人民币支付，多家支付技术厂商预计参与投标。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">收单系统</span><span class="tag">招标</span><span class="tag">银行IT</span><span class="tag">系统改造</span>
+        <span style="margin-left: auto;">来源: <a href="https://www.cfcpn.com/news/case-006" class="source-link">中国金融采购网</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-007</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">欧盟委员会提议将跨境卡支付交换费上限设为借记卡0.2%、信用卡0.3%，并要求收单机构向商户透明披露费率构成，预计每年为商户节省约27亿欧元，Visa与万事达对此表达担忧。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">费率</span><span class="tag">合规</span><span class="tag">收单</span><span class="tag">跨境收单</span>
+        <span style="margin-left: auto;">来源: <a href="https://www.finextra.com/news/case-007" class="source-link">Finextra</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-008</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">星展银行携手ACI Worldwide，在新加坡、香港和印度升级实时支付与收单基础设施，替换现有支付处理系统，支持先买后付等新服务，ACI击败FIS与Temenos中标。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">银行IT</span><span class="tag">收单系统</span><span class="tag">核心系统</span><span class="tag">系统改造</span>
+        <span style="margin-left: auto;">来源: <a href="https://thepaypers.com/news/case-008" class="source-link">The Paypers</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-009</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">Square发布餐厅POS支付平台2.0，新增AI菜单优化、厨房显示等功能，并将年交易额超50万美元商户费率降至2.3%+0.10美元，餐饮商户超30万家。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">POS</span><span class="tag">收单</span><span class="tag">费率</span><span class="tag">支付机构</span>
+        <span style="margin-left: auto;">来源: <a href="https://thepaypers.com/news/case-009" class="source-link">The Paypers</a></span>
+      </div>
+    </div>
+    <div class="case-card pass">
+      <div class="case-header">
+        <span class="case-id">case-010</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-pass">真实 1.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">Salesforce公布季度财报，营收102亿美元，同比增长11%，CRM仍是最大收入来源，Einstein AI平台采用加速，公司上调全年营收指引并宣布100亿美元回购计划。</div>
+      <div class="case-meta">
+        <span class="importance low">重要性 1</span>
+        <span class="tag">企业软件</span><span class="tag">财报</span><span class="tag">CRM</span>
+        <span style="margin-left: auto;">来源: <a href="https://techcrunch.com/2026/case-010" class="source-link">TechCrunch</a></span>
+      </div>
+    </div>
+    <div class="case-card warn">
+      <div class="case-header">
+        <span class="case-id">case-011</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-fail">真实 0.00</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">全球支付平台Rapyd推出MoR模式，数字企业无需设立本地实体即可进入100多国市场，服务涵盖本地支付方式、税务合规、外汇转换、拒付管理与监管报告，Rapyd承担各辖区合规责任。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 4</span>
+        <span class="tag">跨境收单</span><span class="tag">支付机构</span><span class="tag">收单</span>
+        <span style="margin-left: auto;">来源: <a href="https://thepaypers.com/news/case-011" class="source-link">The Paypers</a></span>
+      </div>
+    </div>
+    <div class="case-card warn">
+      <div class="case-header">
+        <span class="case-id">case-012</span>
+        <div class="case-scores">
+          <span class="score-badge badge-pass">格式 1.00</span>
+          <span class="score-badge badge-fail">真实 0.50</span>
+          <span class="score-badge badge-pass">综合 1.00</span>
+        </div>
+      </div>
+      <div class="case-summary">招商银行宣布2027年投入85亿元升级科技基础设施，重点用于支付系统现代化，含核心收单系统升级支持ISO 20022、建设统一商户管理平台及金融科技创新实验室。</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 5</span>
+        <span class="tag">银行IT</span><span class="tag">收单系统</span><span class="tag">核心系统</span><span class="tag">系统改造</span>
+        <span style="margin-left: auto;">来源: <a href="https://www.cfcn.com.cn/news/case-012" class="source-link">中国电子银行网</a></span>
+      </div>
+    </div>
+    <div class="case-card fail">
+      <div class="case-header">
+        <span class="case-id">case-013</span>
+        <div class="case-scores">
+          <span class="score-badge badge-fail">格式 0.00</span>
+          <span class="score-badge badge-fail">真实 0.00</span>
+          <span class="score-badge badge-warn">综合 0.50</span>
+        </div>
+      </div>
+      <div class="case-summary">(失败: 无法从输出中提取 JSON: Let me analyze this article about Lakala Payment.
+
+Key points from the article:
+1. Lakala Payment, one of China's largest third-party acquirers, reported 2026 annual results
+2. Total payment transacti)</div>
+      <div class="case-meta">
+        <span class="importance ">重要性 ?</span>
+        
+        <span style="margin-left: auto;">来源: <span>(无)</span></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>

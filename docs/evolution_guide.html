@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据飞轮 - 持续进化指南</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f6f8fa; color: #1f2328; line-height: 1.8; }
+.container { max-width: 880px; margin: 0 auto; padding: 48px 24px; }
+h1 { font-size: 32px; color: #1f2328; margin-bottom: 8px; }
+h2 { font-size: 22px; color: #1f2328; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #d0d7de; }
+h3 { font-size: 17px; color: #1f2328; margin: 24px 0 12px; }
+.subtitle { color: #656d76; font-size: 15px; margin-bottom: 40px; }
+.callout { background: #f0f6ff; border-left: 4px solid #0969da; border-radius: 6px; padding: 16px 20px; margin: 16px 0; }
+.callout-success { background: #dafbe1; border-left-color: #1a7f37; }
+.callout-warning { background: #fff8c5; border-left-color: #9a6700; }
+code { background: #eff1f3; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'SF Mono', Consolas, monospace; }
+pre { background: #161b22; color: #c9d1d9; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 12px 0; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th { background: #161b22; color: #f0f6fc; padding: 10px 14px; text-align: left; font-size: 13px; }
+td { padding: 10px 14px; border-bottom: 1px solid #d0d7de; font-size: 14px; }
+.step { display: flex; gap: 16px; margin: 16px 0; align-items: flex-start; }
+.step-num { flex-shrink: 0; width: 32px; height: 32px; background: #0969da; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+.step-content { flex: 1; }
+.step-content h4 { font-size: 15px; margin-bottom: 4px; }
+.step-content p { font-size: 14px; color: #656d76; }
+.flywheel { display: flex; justify-content: center; margin: 32px 0; }
+.flywheel-circle { width: 420px; height: 420px; position: relative; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.badge-blue { background: #ddf4ff; color: #0969da; }
+.badge-green { background: #dafbe1; color: #1a7f37; }
+.badge-orange { background: #fff1e5; color: #bc4c00; }
+ul { padding-left: 20px; }
+li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>数据飞轮 — 持续进化指南</h1>
+<p class="subtitle">让系统在使用过程中自动收集数据、发现问题、优化 Prompt、验证改进</p>
+
+<!-- 飞轮图 -->
+<div class="flywheel">
+<svg class="flywheel-circle" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#0969da;stop-opacity:0.15" />
+<stop offset="100%" style="stop-color:#0969da;stop-opacity:0.05" />
+</linearGradient>
+</defs>
+
+<!-- 中心圆 -->
+<circle cx="210" cy="210" r="55" fill="#0969da" />
+<text x="210" y="205" text-anchor="middle" fill="white" font-size="14" font-weight="700">数据飞轮</text>
+<text x="210" y="222" text-anchor="middle" fill="white" font-size="11">越用越好</text>
+
+<!-- 四个阶段圆 -->
+<!-- 1. 采集 -->
+<circle cx="210" cy="60" r="42" fill="#ddf4ff" stroke="#0969da" stroke-width="2"/>
+<text x="210" y="55" text-anchor="middle" fill="#0969da" font-size="12" font-weight="700">① 采集</text>
+<text x="210" y="70" text-anchor="middle" fill="#0969da" font-size="10">新文章入库</text>
+
+<!-- 2. 评测 -->
+<circle cx="360" cy="210" r="42" fill="#dafbe1" stroke="#1a7f37" stroke-width="2"/>
+<text x="360" y="205" text-anchor="middle" fill="#1a7f37" font-size="12" font-weight="700">② 评测</text>
+<text x="360" y="220" text-anchor="middle" fill="#1a7f37" font-size="10">跑AI Evals</text>
+
+<!-- 3. 对比 -->
+<circle cx="210" cy="360" r="42" fill="#fff1e5" stroke="#bc4c00" stroke-width="2"/>
+<text x="210" y="355" text-anchor="middle" fill="#bc4c00" font-size="12" font-weight="700">③ 对比</text>
+<text x="210" y="370" text-anchor="middle" fill="#bc4c00" font-size="10">基线检测</text>
+
+<!-- 4. 优化 -->
+<circle cx="60" cy="210" r="42" fill="#fbefff" stroke="#8250df" stroke-width="2"/>
+<text x="60" y="205" text-anchor="middle" fill="#8250df" font-size="12" font-weight="700">④ 优化</text>
+<text x="60" y="220" text-anchor="middle" fill="#8250df" font-size="10">改Prompt</text>
+
+<!-- 箭头弧线 -->
+<path d="M 250 85 Q 330 100 335 170" fill="none" stroke="#0969da" stroke-width="2" marker-end="url(#arrowhead1)"/>
+<path d="M 335 250 Q 330 320 250 335" fill="none" stroke="#1a7f37" stroke-width="2" marker-end="url(#arrowhead2)"/>
+<path d="M 170 335 Q 90 320 85 250" fill="none" stroke="#bc4c00" stroke-width="2" marker-end="url(#arrowhead3)"/>
+<path d="M 85 170 Q 90 100 170 85" fill="none" stroke="#8250df" stroke-width="2" marker-end="url(#arrowhead4)"/>
+
+<defs>
+<marker id="arrowhead1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0969da"/></marker>
+<marker id="arrowhead2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#1a7f37"/></marker>
+<marker id="arrowhead3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bc4c00"/></marker>
+<marker id="arrowhead4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8250df"/></marker>
+</defs>
+</svg>
+</div>
+
+<!-- 核心概念 -->
+<h2>核心理念</h2>
+<div class="callout">
+<p><strong>数据飞轮</strong>是一个自我强化的闭环：系统每次运行都会产生新数据，这些数据反哺评测集，评测集检测出薄弱环节，驱动 Prompt 和模型优化，优化后的系统又能采集更好的数据——<strong>越用越好，持续进化</strong>。</p>
+</div>
+
+<!-- 四步闭环 -->
+<h2>四步闭环详解</h2>
+
+<div class="step">
+<div class="step-num">1</div>
+<div class="step-content">
+<h4>采集 — 持续扩充评测集</h4>
+<p>每次发现新的真实文章（不管是系统采集的还是人工发现的），都加入评测集。评测集越大，评测越可靠。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-num">2</div>
+<div class="step-content">
+<h4>评测 — 跑 AI Evals</h4>
+<p>用当前的 Prompt 和模型对评测集跑一轮完整评测，计算格式合规、真实性、综合质量三个指标。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-num">3</div>
+<div class="step-content">
+<h4>对比 — 基线检测</h4>
+<p>将当前得分与基线对比。如果分数下降超过 0.05，触发回归告警；如果分数提升超过 0.01，自动更新基线。</p>
+</div>
+</div>
+
+<div class="step">
+<div class="step-num">4</div>
+<div class="step-content">
+<h4>优化 — 改 Prompt / 换模型</h4>
+<p>根据评测发现的薄弱点（哪条用例得分低、哪个指标差），针对性优化 Prompt 或尝试新模型，然后回到第 2 步验证。</p>
+</div>
+</div>
+
+<!-- 工具 -->
+<h2>工具与命令</h2>
+
+<h3>1. 运行进化流水线</h3>
+<p>一键执行：评测 → 对比基线 → 输出报告 → 自动更新基线</p>
+<pre><code>cd 项目目录
+python scripts/eval_pipeline.py</code></pre>
+<p>退出码 0 = 无回归（可用于 CI 门禁），退出码 1 = 检测到回归。</p>
+
+<h3>2. 添加新用例到评测集</h3>
+<p>发现新的真实文章时，加入评测集：</p>
+<pre><code>python scripts/add_golden.py \
+  --id case-011 \
+  --input "文章全文内容" \
+  --source "来源名称" \
+  --url "https://真实链接" \
+  --expected "预期摘要（可选）" \
+  --importance 5</code></pre>
+
+<h3>3. 查看历史进化轨迹</h3>
+<p>每次运行的结果都保存在 <code>eval/.evals/history/</code> 目录，可以追踪质量变化轨迹：</p>
+<pre><code>ls eval/.evals/history/
+# run_20260831_120000.json
+# run_20260901_080000.json
+# ...</code></pre>
+
+<h3>4. 对比两次运行</h3>
+<p>对比任意两次运行的结果，看哪些用例进步了、哪些退步了：</p>
+<pre><code>python -c "
+import json
+r1 = json.load(open('eval/.evals/history/run_20260831_120000.json'))
+r2 = json.load(open('eval/.evals/history/run_20260901_080000.json'))
+for m in ['schema_validation','faithfulness','geval','overall_weighted']:
+    o, n = r1['metrics'][m], r2['metrics'][m]
+    d = n - o
+    print(f'{m}: {o:.2f} → {n:.2f} ({\"↑\" if d>0 else \"↓\" if d<0 else \"→\"}{abs(d):.2f})')
+"</code></pre>
+
+<!-- 进化场景 -->
+<h2>典型进化场景</h2>
+
+<table>
+<tr><th>场景</th><th>触发方式</th><th>预期效果</th></tr>
+<tr>
+<td><span class="badge badge-blue">Prompt 优化</span></td>
+<td>修改 <code>prompts/summarize.txt</code> → 跑 <code>eval_pipeline.py</code></td>
+<td>发现真实性从 0.90 → 0.95，自动更新基线</td>
+</tr>
+<tr>
+<td><span class="badge badge-green">模型升级</span></td>
+<td>换更强模型 → 跑 <code>eval_pipeline.py</code> → 对比基线</td>
+<td>综合质量从 0.95 → 0.98，数据驱动选型</td>
+</tr>
+<tr>
+<td><span class="badge badge-orange">回归检测</span></td>
+<td>Prompt 改动后跑评测，发现某个指标下降</td>
+<td>退出码 1，CI 阻止合并，避免质量下降</td>
+</tr>
+<tr>
+<td><span class="badge badge-blue">数据扩充</span></td>
+<td>用 <code>add_golden.py</code> 加入新真实文章</td>
+<td>评测集从 10 条 → 20 条，覆盖面更广</td>
+</tr>
+</table>
+
+<!-- CI/CD 集成 -->
+<h2>CI/CD 集成（AI-DLC Operations）</h2>
+<div class="callout callout-success">
+<p>将 <code>eval_pipeline.py</code> 集成到 CI/CD 流水线，实现 <strong>评测门禁</strong>——每次代码或 Prompt 变更必须通过评测才能合并。</p>
+</div>
+
+<p>GitHub Actions 示例：</p>
+<pre><code>name: AI Eval Gate
+on:
+  pull_request:
+    paths:
+      - 'eval/prompts/**'
+      - 'app/llm.py'
+      - 'eval/goldens.jsonl'
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run eval pipeline
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python scripts/eval_pipeline.py
+        # 退出码 0 = 通过门禁，1 = 回归，阻止合并</code></pre>
+
+<!-- 历史进化记录 -->
+<h2>历史进化记录</h2>
+<p>每次运行的指标变化都保存在 <code>eval/.evals/history/</code>，形成进化轨迹：</p>
+
+<table>
+<tr><th>版本</th><th>日期</th><th>数据</th><th>格式</th><th>真实性</th><th>综合</th><th>加权</th><th>变化</th></tr>
+<tr><td>v1</td><td>08-30</td><td>模拟</td><td>1.00</td><td>0.73</td><td>0.96</td><td>0.88</td><td>—</td></tr>
+<tr><td>v2</td><td>08-30</td><td>模拟</td><td>0.92</td><td>0.81</td><td>0.88</td><td>0.86</td><td>→</td></tr>
+<tr><td>v3</td><td>08-30</td><td>模拟</td><td>1.00</td><td>0.75</td><td>0.92</td><td>0.87</td><td>→</td></tr>
+<tr><td><strong>v4</strong></td><td><strong>08-31</strong></td><td><strong>真实</strong></td><td><strong>1.00</strong></td><td><strong>1.00</strong></td><td><strong>1.00</strong></td><td><strong>1.00</strong></td><td><strong>↑ +0.13</strong></td></tr>
+</table>
+
+<div class="callout callout-success">
+<p><strong>从 v1 到 v4，综合得分从 0.88 提升到 1.00</strong>——这正是数据飞轮的效果：真实数据 + Prompt 优化 + JSON 修复 + 基线对比，每一步都在积累改进。</p>
+</div>
+
+<!-- 持续进化路线 -->
+<h2>持续进化路线</h2>
+
+<h3>短期（每周）</h3>
+<ul>
+<li>每周跑一次 <code>eval_pipeline.py</code>，检查质量是否稳定</li>
+<li>每周添加 2-3 条新真实文章到评测集（用 <code>add_golden.py</code>）</li>
+<li>发现低分用例时，针对性优化 Prompt 中的对应指令</li>
+</ul>
+
+<h3>中期（每月）</h3>
+<ul>
+<li>评测集扩充到 30+ 条，覆盖更多场景（POS、数字货币、SaaS 计费、嵌入式金融等）</li>
+<li>尝试新模型（如 GPT-4o、Claude），用同一评测集对比选型</li>
+<li>接入 CI/CD 门禁，Prompt 变更必须通过评测</li>
+</ul>
+
+<h3>长期（每季度）</h3>
+<ul>
+<li>评测集达到 50+ 条，形成行业级黄金标准</li>
+<li>引入多维度评测（新增"相关性"、"时效性"指标）</li>
+<li>建立人工标注反馈循环：业务专家审核摘要质量，标注优秀和差劣案例</li>
+<li>实现自动 Prompt 优化：系统自动分析低分案例，生成 Prompt 改进建议</li>
+</ul>
+
+</div>
+</body>
+</html>

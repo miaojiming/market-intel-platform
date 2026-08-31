@@ -1,0 +1,10 @@
+{
+  "timestamp": "20260901_001034",
+  "run_at": "2026-09-01 00:10:34",
+  "metrics": {
+    "schema_validation": 1.0,
+    "faithfulness": 0.95,
+    "geval": 1.0,
+    "overall_weighted": 0.98
+  }
+}

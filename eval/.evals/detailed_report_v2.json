@@ -1,0 +1,255 @@
+{
+  "model": "z-ai/glm-5.3-flash",
+  "total_cases": 13,
+  "prompt_version": "v2 (含来源字段 + 真实性约束 + 不输出推理)",
+  "summary": {
+    "schema_validation": 0.9231,
+    "faithfulness": 0.8077,
+    "geval": 0.8846,
+    "overall_weighted": 0.8615,
+    "thresholds": {
+      "schema_validation": 1.0,
+      "faithfulness": 0.85,
+      "geval": 0.7
+    },
+    "all_passed": false
+  },
+  "cases": [
+    {
+      "id": "case-001",
+      "input_preview": "Global payment processor Fiserv has announced a 15% reduction in its interchange...",
+      "summary_zh": "Fiserv宣布2027年一季度起下调美国中小商户收单费率15%，称因规模效应及Stripe、Adyen等竞争压力，预计将加剧美国收单市场价格战，同行或被迫跟进调价。",
+      "tags": [
+        "收单",
+        "费率",
+        "支付机构"
+      ],
+      "importance": 5,
+      "source_name": "Finextra",
+      "source_url": "https://www.finextra.com/news/case-001",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-002",
+      "input_preview": "The Reserve Bank of India (RBI) has issued new guidelines for payment aggregator...",
+      "summary_zh": "印度央行RBI发布支付聚合商与商户收单机构新规，要求对高风险行业商户强化尽职调查、实施实时交易监控与商户风险评分，结算不得超T+1，Paytm等机构正调整入驻流程以合规。",
+      "tags": [
+        "收单",
+        "合规",
+        "支付机构"
+      ],
+      "importance": 5,
+      "source_name": "The Paypers",
+      "source_url": "https://thepaypers.com/news/case-002",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-003",
+      "input_preview": "HSBC has awarded a multi-year contract to Temenos for the replacement of its cor...",
+      "summary_zh": "汇丰与Temenos签署多年期合同，将亚太18个市场的核心银行及支付系统迁移至其云原生Transact平台，以加快收单与支付产品上线、提升效率并降低长期技术成本。",
+      "tags": [
+        "核心系统",
+        "银行IT",
+        "收单系统",
+        "系统改造"
+      ],
+      "importance": 5,
+      "source_name": "Finextra",
+      "source_url": "https://www.finextra.com/news/case-003",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-004",
+      "input_preview": "Airbnb has announced that it is switching its primary acquiring partner from Bra...",
+      "summary_zh": "Airbnb宣布将全球收单合作方从Braintree更换为Adyen，2027年年中生效，覆盖220多个国家和地区，支持本地支付方式并优化授权率，为近年最大收单合约之一。",
+      "tags": [
+        "收单",
+        "跨境收单",
+        "支付机构"
+      ],
+      "importance": 5,
+      "source_name": "The Paypers",
+      "source_url": "https://thepaypers.com/news/case-004",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-005",
+      "input_preview": "A new gym franchise called FitZone has opened its 20th location in the greater C...",
+      "summary_zh": "健身连锁品牌FitZone在芝加哥地区开设第20家门店，提供团操课程，会员月费49美元起且无长期合约，计划到2028年扩展至50家门店，聚焦郊区市场。",
+      "tags": [
+        "健身行业",
+        "连锁扩张",
+        "会员定价"
+      ],
+      "importance": 1,
+      "source_name": "Fitness Business",
+      "source_url": "https://fitnessbusiness.com/news/case-005",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 0.0
+      }
+    },
+    {
+      "id": "case-006",
+      "input_preview": "The Industrial and Commercial Bank of China (ICBC) has issued a public tender fo...",
+      "summary_zh": "工商银行公开招标新一代收单系统，预算3.8亿元，拟以云原生架构替换运行15年的老旧收单平台，支持银行卡、二维码、NFC及数字人民币支付，多家支付技术厂商预计参与投标。",
+      "tags": [
+        "收单系统",
+        "招标",
+        "银行IT",
+        "系统改造"
+      ],
+      "importance": 5,
+      "source_name": "中国金融采购网",
+      "source_url": "https://www.cfcpn.com/news/case-006",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-007",
+      "input_preview": "The European Commission has proposed new rules that would cap interchange fees f...",
+      "summary_zh": "欧盟委员会提议将跨境卡支付交换费上限设为借记卡0.2%、信用卡0.3%，并要求收单机构向商户透明披露费率构成，预计每年为商户节省约27亿欧元，Visa与万事达对此表达担忧。",
+      "tags": [
+        "费率",
+        "合规",
+        "收单",
+        "跨境收单"
+      ],
+      "importance": 5,
+      "source_name": "Finextra",
+      "source_url": "https://www.finextra.com/news/case-007",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-008",
+      "input_preview": "DBS Bank has partnered with ACI Worldwide to modernize its real-time payments an...",
+      "summary_zh": "星展银行携手ACI Worldwide，在新加坡、香港和印度升级实时支付与收单基础设施，替换现有支付处理系统，支持先买后付等新服务，ACI击败FIS与Temenos中标。",
+      "tags": [
+        "银行IT",
+        "收单系统",
+        "核心系统",
+        "系统改造"
+      ],
+      "importance": 5,
+      "source_name": "The Paypers",
+      "source_url": "https://thepaypers.com/news/case-008",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-009",
+      "input_preview": "Square, the merchant acquiring arm of Block Inc., has launched Square for Restau...",
+      "summary_zh": "Square发布餐厅POS支付平台2.0，新增AI菜单优化、厨房显示等功能，并将年交易额超50万美元商户费率降至2.3%+0.10美元，餐饮商户超30万家。",
+      "tags": [
+        "POS",
+        "收单",
+        "费率",
+        "支付机构"
+      ],
+      "importance": 5,
+      "source_name": "The Paypers",
+      "source_url": "https://thepaypers.com/news/case-009",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-010",
+      "input_preview": "Cloud-based software company Salesforce has announced its quarterly earnings res...",
+      "summary_zh": "Salesforce公布季度财报，营收102亿美元，同比增长11%，CRM仍是最大收入来源，Einstein AI平台采用加速，公司上调全年营收指引并宣布100亿美元回购计划。",
+      "tags": [
+        "企业软件",
+        "财报",
+        "CRM"
+      ],
+      "importance": 1,
+      "source_name": "TechCrunch",
+      "source_url": "https://techcrunch.com/2026/case-010",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-011",
+      "input_preview": "Global payments platform Rapyd has launched a new merchant of record (MoR) model...",
+      "summary_zh": "全球支付平台Rapyd推出MoR模式，数字企业无需设立本地实体即可进入100多国市场，服务涵盖本地支付方式、税务合规、外汇转换、拒付管理与监管报告，Rapyd承担各辖区合规责任。",
+      "tags": [
+        "跨境收单",
+        "支付机构",
+        "收单"
+      ],
+      "importance": 4,
+      "source_name": "The Paypers",
+      "source_url": "https://thepaypers.com/news/case-011",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 0.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-012",
+      "input_preview": "China Merchants Bank (CMB) has announced plans to invest 8.5 billion RMB in tech...",
+      "summary_zh": "招商银行宣布2027年投入85亿元升级科技基础设施，重点用于支付系统现代化，含核心收单系统升级支持ISO 20022、建设统一商户管理平台及金融科技创新实验室。",
+      "tags": [
+        "银行IT",
+        "收单系统",
+        "核心系统",
+        "系统改造"
+      ],
+      "importance": 5,
+      "source_name": "中国电子银行网",
+      "source_url": "https://www.cfcn.com.cn/news/case-012",
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 0.5,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-013",
+      "input_preview": "Lakala Payment, one of China's largest third-party acquirers, has reported its 2...",
+      "summary_zh": "(失败: 无法从输出中提取 JSON: Let me analyze this article about Lakala Payment.\n\nKey points from the article:\n1. Lakala Payment, one of China's largest third-party acquirers, reported 2026 annual results\n2. Total payment transacti)",
+      "tags": [],
+      "importance": 0,
+      "source_name": "",
+      "source_url": "",
+      "scores": {
+        "schema_validation": 0,
+        "faithfulness": 0,
+        "geval": 0.5
+      }
+    }
+  ]
+}

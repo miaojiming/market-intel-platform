@@ -1,0 +1,10 @@
+fastapi==0.110.0
+uvicorn==0.27.0
+pydantic==2.6.0
+python-dotenv==1.0.0
+httpx==0.26.0
+feedparser==6.0.11
+beautifulsoup4==4.12.3
+lark-oapi==1.2.0
+harness-evals[llm]==0.3.0
+apscheduler==3.10.4

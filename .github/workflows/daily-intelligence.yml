@@ -1,0 +1,100 @@
+name: Daily Intelligence Report
+
+on:
+  schedule:
+    # 每天北京时间 8:00 运行（UTC 0:00）
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests feedparser beautifulsoup4 APScheduler
+
+      - name: Run intelligence collection
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          LLM_MAX_RETRIES: '4'
+          LLM_RETRY_DELAY: '3'
+        run: |
+          python -c "
+          import sys, json, os
+          sys.path.insert(0, '.')
+          from app.intelligence import collect_all
+          from app.llm import chat_json
+
+          # 1. 采集文章
+          articles = collect_all()
+          print(f'采集到 {len(articles)} 篇文章')
+
+          # 2. 逐篇摘要
+          with open('eval/prompts/summarize.txt') as f:
+              prompt_tpl = f.read()
+
+          results = []
+          for i, article in enumerate(articles[:20], 1):
+              try:
+                  prompt = prompt_tpl.format(
+                      article=article['content'],
+                      source_name=article.get('source_name', ''),
+                      source_url=article.get('link', ''),
+                  )
+                  summary = chat_json(prompt, temperature=0.3, max_tokens=4000)
+                  summary['source_url'] = article.get('link', '')
+                  results.append(summary)
+                  print(f'  [{i}/{min(len(articles),20)}] {summary.get(\"summary_zh\",\"\")[:60]}...')
+              except Exception as e:
+                  print(f'  [{i}] 失败: {e}')
+
+          # 3. 筛选高价值情报 (importance >= 4)
+          high_value = [r for r in results if r.get('importance', 0) >= 4]
+          print(f'高价值情报: {len(high_value)} 篇')
+
+          # 4. 推送飞书
+          webhook = os.environ.get('FEISHU_WEBHOOK_URL', '')
+          if webhook and high_value:
+              import requests as req
+              cards = []
+              for r in high_value:
+                  cards.append({
+                      'title': r.get('summary_zh', '')[:40],
+                      'content': f\"摘要: {r.get('summary_zh','')}\n标签: {', '.join(r.get('tags',[]))}\n来源: {r.get('source_url','')}\",
+                  })
+              msg = {
+                  'msg_type': 'interactive',
+                  'card': {
+                      'header': {'title': {'tag': 'plain_text', 'content': f'📊 每日收单情报 ({len(high_value)}篇高价值)'}},
+                      'elements': [{'tag': 'div', 'text': {'tag': 'lark_md', 'content': c['content']}} for c in cards[:10]],
+                  }
+              }
+              resp = req.post(webhook, json=msg, timeout=10)
+              print(f'飞书推送: {resp.status_code}')
+          elif not webhook:
+              print('未配置飞书 Webhook，跳过推送')
+
+          # 5. 保存结果
+          os.makedirs('output', exist_ok=True)
+          with open(f'output/intelligence_{__import__(\"datetime\").date.today()}.json', 'w') as f:
+              json.dump(results, f, ensure_ascii=False, indent=2)
+          print('情报已保存')
+          "
+
+      - name: Upload intelligence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-intelligence
+          path: output/
+          retention-days: 30

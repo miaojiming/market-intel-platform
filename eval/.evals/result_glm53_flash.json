@@ -1,0 +1,96 @@
+{
+  "avg_scores": {
+    "schema_validation": 1.0,
+    "faithfulness": 0.7307692307692307,
+    "geval": 0.9615384615384616
+  },
+  "overall": 0.8769230769230769,
+  "all_passed": false,
+  "pass_status": {
+    "schema_validation": true,
+    "faithfulness": false,
+    "geval": true
+  },
+  "model": "z-ai/glm-5.3-flash",
+  "case_count": 13,
+  "per_case": [
+    {
+      "id": "case-001",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-002",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-003",
+      "schema": 1.0,
+      "faithfulness": 0.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-004",
+      "schema": 1.0,
+      "faithfulness": 0.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-005",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-006",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-007",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-008",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-009",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-010",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-011",
+      "schema": 1.0,
+      "faithfulness": 0.0,
+      "geval": 1.0
+    },
+    {
+      "id": "case-012",
+      "schema": 1.0,
+      "faithfulness": 0.5,
+      "geval": 0.5
+    },
+    {
+      "id": "case-013",
+      "schema": 1.0,
+      "faithfulness": 1.0,
+      "geval": 1.0
+    }
+  ]
+}

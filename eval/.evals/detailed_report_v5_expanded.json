@@ -1,0 +1,239 @@
+{
+  "model": "z-ai/glm-5.3-flash",
+  "total_cases": 13,
+  "run_at": "2026-09-01 00:29:10",
+  "summary": {
+    "schema_validation": 1.0,
+    "faithfulness": 0.9192,
+    "geval": 1.0,
+    "overall_weighted": 0.9677
+  },
+  "cases": [
+    {
+      "id": "case-001",
+      "source_name": "GlobeNewsWire / Temenos",
+      "source_url": "https://www.globenewswire.com/news-release/2026/08/26/3351621/0/en/sacombank-modernizes-core-banking-with-temenos-and-ibm.html",
+      "summary_zh": "越南SACOMBANK将Temenos核心银行系统从本地部署升级至混合云，日均处理1300万笔交易，性能提升200%，并选用Temenos Payments Hub支持跨境支付。",
+      "tags": [
+        "核心系统",
+        "银行IT",
+        "系统改造",
+        "跨境收单"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-002",
+      "source_name": "FIS Press Release",
+      "source_url": "https://www.fisglobal.com/about-us/media-room/press-release/2026/banksouth-selects-fis-core-banking-platform-to-modernize-operations-and-unlock-ai-readiness",
+      "summary_zh": "佐治亚州社区银行BankSouth（资产16亿美元）选择FIS替换现有核心银行平台，以更快集成AI与第三方金融科技方案，获得开放API、支付卡能力与欺诈防护支持。",
+      "tags": [
+        "核心系统",
+        "银行IT",
+        "系统改造"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-003",
+      "source_name": "Nasdaq / RTTNews",
+      "source_url": "https://www.nasdaq.com/articles/visa-and-mastercard-win-preliminary-approval-merchant-fee-settlement",
+      "summary_zh": "美国法官初步批准Visa与万事达380亿美元和解案，源于1200万商户费率诉讼。两公司将下调交换费0.1个百分点五年，消费卡费率限至1.25%，商户可拒高费率卡。",
+      "tags": [
+        "费率",
+        "收单",
+        "支付机构",
+        "合规"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-004",
+      "source_name": "Adyen Press Release",
+      "source_url": "https://www.adyen.com/press-and-media/jtrg4qd7j3p4rj",
+      "summary_zh": "Adyen宣布以3.35亿美元现金收购企业计费平台Orb，通过反向三角合并使其成为全资子公司，双方将打通计费与支付数据，应对AI驱动的按用量计费趋势。",
+      "tags": [
+        "支付机构",
+        "收单",
+        "系统改造"
+      ],
+      "importance": 4,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-005",
+      "source_name": "招标与采购网",
+      "source_url": "https://m.zbytb.com/25-0-69102768-1.html",
+      "summary_zh": "哈尔滨银行绥化分行公开招标收单支付业务合作，限价借记卡0.45%封顶18元、贷记卡0.53%、扫码0.23%，要求持有效支付业务许可证，9月11日截止投标。",
+      "tags": [
+        "收单",
+        "招标",
+        "费率",
+        "支付机构"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 0.45,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-006",
+      "source_name": "移动支付网 / 东方财富网",
+      "source_url": "https://caifuhao.eastmoney.com/news/20260819183226276915960",
+      "summary_zh": "印尼央行将QRIS零费率MDR政策从微型企业扩展至全部商户，适用单笔10万印尼盾以内交易，2026年10月1日实施，原微型企业优惠政策保留，旨在降低商户成本、提升QRIS受理度。",
+      "tags": [
+        "费率",
+        "收单",
+        "支付机构",
+        "合规"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-007",
+      "source_name": "UK Payment Systems Regulator",
+      "source_url": "https://www.psr.org.uk/media/a3wjlyz5/specific-direction-23-pg-july-2026.pdf",
+      "summary_zh": "英国支付系统监管局发布第23号特别指令，要求万事达与维萨改进对收单机构收取的卡组织及处理费英国定价的治理与记录，此前监管认定收单侧费用大幅上涨且新费用缺乏成本依据。",
+      "tags": [
+        "收单",
+        "费率",
+        "合规",
+        "支付机构"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-008",
+      "source_name": "Merchant Cost Consulting",
+      "source_url": "https://merchantcostconsulting.com/lower-credit-card-processing-fees/2026-interchange-updates/",
+      "summary_zh": "Visa将于2026年1月24日上调Product 3商业信用卡费率，4月16日停用Level 2数据计划；Mastercard、Amex、Discover同步调整交换费，Amex推出小商户分级定价，费率结构趋复杂。",
+      "tags": [
+        "费率",
+        "收单",
+        "支付机构"
+      ],
+      "importance": 5,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-009",
+      "source_name": "RestaurantNews.com",
+      "source_url": "https://smb.panews.com/article/CRISP-and-GREEN-Expands-Minnesota-Presence-With-Rogers-Opening/6a730de8d21c5e0002cc3061",
+      "summary_zh": "健康快餐品牌CRISP & GREEN在明尼苏达州罗杰斯开设新店，系该州第22家门店，由特许经营伙伴eatSmart Minnesota LLC运营，品牌全美共53家门店并持续扩张。",
+      "tags": [
+        "餐饮品牌",
+        "门店扩张",
+        "特许经营"
+      ],
+      "importance": 1,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-010",
+      "source_name": "Salesforce Press Release",
+      "source_url": "https://www.salesforce.com/news/press-releases/2026/08/26/fy27-q2-earnings/",
+      "summary_zh": "Salesforce公布2027财年二季度业绩：营收113亿美元同比增长11%，cRPO达335亿美元增14%，AI与数据产品ARR即将突破40亿美元。",
+      "tags": [
+        "财报",
+        "SaaS",
+        "AI"
+      ],
+      "importance": 1,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-011",
+      "source_name": "Mastercard Newsroom",
+      "source_url": "https://www.mastercard.com/news/ap/zh-cn/观点洞察/zh-cn/2026/8月/赋能商户迈入智能体商业新时代/",
+      "summary_zh": "万事达卡推出面向商户的Agent Suite智能体套件，通过Merchant Cloud商户云提供，商户可在自有网站融入AI智能体体验，支持安全发起交易、管理标记化凭证及身份验证。",
+      "tags": [
+        "支付机构",
+        "收单",
+        "智能体商业"
+      ],
+      "importance": 4,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-012",
+      "source_name": "Connecting the Dots in Payments",
+      "source_url": "https://www.connectingthedotsinpayments.com/walmart-finally-gives-in-apple-pay-and-google-pay-are-coming/",
+      "summary_zh": "沃尔玛宣布自8月24日起门店接受Apple Pay和Google Pay，年底前全美推广，Sam's Club同步支持，结束多年力推自有Walmart Pay的策略，与85%已支持拍卡支付的美国零售商看齐。",
+      "tags": [
+        "POS",
+        "收单",
+        "支付机构"
+      ],
+      "importance": 4,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 0.5,
+        "geval": 1.0
+      }
+    },
+    {
+      "id": "case-013",
+      "source_name": "Nuvei Press Release",
+      "source_url": "https://www.nuvei.com/posts/nuvei-and-blackline-partner-to-modernize-the-invoice-to-cash-process-through-embedded-payments",
+      "summary_zh": "Nuvei与BlackLine达成合作，将支付受理嵌入其发票至收款平台，支持在发票上直接收款并自动匹配对账，覆盖150种货币、190多个市场，目前已上线企业客户。",
+      "tags": [
+        "支付机构",
+        "跨境收单",
+        "收单"
+      ],
+      "importance": 4,
+      "scores": {
+        "schema_validation": 1.0,
+        "faithfulness": 1.0,
+        "geval": 1.0
+      }
+    }
+  ]
+}

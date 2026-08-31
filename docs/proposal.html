@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场智能情报与获客平台 - 方案文档</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.8;
+    padding: 0;
+  }
+  .cover {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    padding: 80px 40px;
+    text-align: center;
+  }
+  .cover h1 { font-size: 36px; margin-bottom: 16px; font-weight: 700; }
+  .cover .subtitle { font-size: 18px; opacity: 0.8; margin-bottom: 32px; }
+  .cover .meta { font-size: 14px; opacity: 0.6; }
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 24px; }
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 48px 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #0f3460;
+    color: #0f3460;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 32px 0 16px;
+    color: #16213e;
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: #1d1d1f;
+  }
+  p { margin-bottom: 12px; font-size: 15px; color: #333; }
+  ul, ol { margin: 12px 0 20px 24px; }
+  li { margin-bottom: 8px; font-size: 15px; color: #333; }
+  code {
+    background: #e8e8ed;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: "SF Mono", "Fira Code", monospace;
+  }
+  pre {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th {
+    background: #0f3460;
+    color: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #d2d2d7;
+  }
+  tr:nth-child(even) td { background: #f5f5f7; }
+
+  .callout {
+    background: #e8f4fd;
+    border-left: 4px solid #0071e3;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+  }
+  .callout.warning {
+    background: #fff3e0;
+    border-left-color: #ff9500;
+  }
+  .callout.success {
+    background: #e8f5e9;
+    border-left-color: #34c759;
+  }
+  .callout.danger {
+    background: #ffebee;
+    border-left-color: #ff3b30;
+  }
+  .callout p { margin: 0; font-size: 14px; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card h4 { margin-top: 0; color: #0f3460; }
+  .card p { font-size: 13px; color: #6e6e73; margin: 4px 0; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-blue { background: #0071e3; color: #fff; }
+  .badge-green { background: #34c759; color: #fff; }
+  .badge-orange { background: #ff9500; color: #fff; }
+  .badge-red { background: #ff3b30; color: #fff; }
+  .badge-gray { background: #86868b; color: #fff; }
+
+  .toc {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 24px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .toc h3 { margin-top: 0; color: #0f3460; }
+  .toc ol { margin-left: 20px; }
+  .toc li { margin-bottom: 6px; font-size: 14px; }
+  .toc a { color: #0071e3; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .metric-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .metric-box {
+    flex: 1;
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .metric-box .num { font-size: 28px; font-weight: 700; }
+  .metric-box .lbl { font-size: 12px; color: #6e6e73; margin-top: 4px; }
+
+  .timeline {
+    position: relative;
+    padding-left: 24px;
+    margin: 20px 0;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #d2d2d7;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding-left: 20px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #0f3460;
+    border: 2px solid #fff;
+  }
+  .timeline-item h4 { margin: 0 0 4px; }
+  .timeline-item p { margin: 0; font-size: 14px; color: #6e6e73; }
+</style>
+</head>
+<body>
+
+<!-- 封面 -->
+<div class="cover">
+  <h1>市场智能情报与获客平台</h1>
+  <p class="subtitle">聚焦收单业务与银行 IT — MVP 方案 + AI 工程化实践验证</p>
+  <div class="meta">
+    日期：2026-08-30 &nbsp;|&nbsp; 版本：v1.1（融入 AI-DLC 方法论） &nbsp;|&nbsp; 状态：MVP 已验证
+  </div>
+</div>
+
+<div class="container">
+
+<!-- 目录 -->
+<div class="toc">
+  <h3>目录</h3>
+  <ol>
+    <li><a href="#bg">背景与目标</a></li>
+    <li><a href="#scope">MVP 范围定义</a></li>
+    <li><a href="#arch">系统架构</a></li>
+    <li><a href="#modules">核心模块</a></li>
+    <li><a href="#ai-eng">AI 工程化实践 — AI Evals</a></li>
+    <li><a href="#eval-results">评测结果与模型对比</a></li>
+    <li><a href="#issues">遇到的问题与解决方案</a></li>
+    <li><a href="#findings">关键发现</a></li>
+    <li><a href="#aidlc">AI-DLC 工程化方法论</a></li>
+    <li><a href="#roadmap">下一步计划</a></li>
+  </ol>
+</div>
+
+<!-- 1. 背景与目标 -->
+<h2 id="bg">1. 背景与目标</h2>
+
+<h3>1.1 业务背景</h3>
+<p>面向支付行业中的<strong>收单业务</strong>和<strong>银行 IT</strong> 领域，构建一个市场智能情报与获客平台。核心目标是从公开信息源自动采集行业动态，利用 AI 生成结构化情报摘要，并识别潜在商业机会（如收单机构、银行的系统改造需求）。</p>
+
+<h3>1.2 核心目标</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4>快速出产品</h4>
+    <p>2 天内完成 MVP，聚焦必要功能，控制风险</p>
+  </div>
+  <div class="card">
+    <h4>验证 AI 工程化</h4>
+    <p>用 AI Evals 框架验证 AI 系统质量可量化、可回归</p>
+  </div>
+  <div class="card">
+    <h4>聚焦收单</h4>
+    <p>收单费率、系统招标、监管政策、核心系统替换</p>
+  </div>
+  <div class="card">
+    <h4>银行 IT</h4>
+    <p>独立部署的收单系统、银行核心系统改造也是机会</p>
+  </div>
+</div>
+
+<h3>1.3 商业逻辑</h3>
+<pre><code>行业情报采集 → AI 摘要 + 重要性评级 → 高价值线索识别 → 客户画像 → 获客触达
+
+重点关注信号：
+  - 收单费率变动（竞争加剧信号）
+  - 银行收单系统招标/改造（直接商机）
+  - 核心系统替换（系统供应商机会）
+  - 监管政策变化（合规需求）
+  - 收单机构重大合约变更（供应商切换机会）</code></pre>
+
+<!-- 2. MVP 范围 -->
+<h2 id="scope">2. MVP 范围定义</h2>
+
+<h3>2.1 做什么（In Scope）</h3>
+<table>
+  <tr><th>模块</th><th>功能</th><th>优先级</th></tr>
+  <tr><td>情报采集</td><td>从 Finextra、The Paypers 等行业源 RSS 抓取文章</td><td><span class="badge badge-blue">P0</span></td></tr>
+  <tr><td>AI 摘要</td><td>LLM 生成中文摘要 + 关键词标签 + 重要性评分</td><td><span class="badge badge-blue">P0</span></td></tr>
+  <tr><td>客户画像</td><td>根据企业名称搜索公开信息，LLM 生成画像</td><td><span class="badge badge-blue">P0</span></td></tr>
+  <tr><td>情报推送</td><td>每日定时推送高价值情报摘要到飞书</td><td><span class="badge badge-orange">P1</span></td></tr>
+  <tr><td>AI Evals</td><td>评测框架：格式合规 + 真实性 + 综合质量 + 门禁</td><td><span class="badge badge-blue">P0</span></td></tr>
+</table>
+
+<h3>2.2 不做什么（Out of Scope）</h3>
+<table>
+  <tr><th>功能</th><th>原因</th><th>后续计划</th></tr>
+  <tr><td>LinkedIn 反爬获客</td><td>反爬风险高、账号封禁风险</td><td>后期评估合规替代方案</td></tr>
+  <tr><td>多渠道推送</td><td>MVP 只做飞书</td><td>后续加邮件、Slack</td></tr>
+  <tr><td>全量历史数据</td><td>MVP 只做实时增量</td><td>后续加数据仓库</td></tr>
+  <tr><td>用户系统</td><td>MVP 无登录</td><td>后续加多租户</td></tr>
+</table>
+
+<!-- 3. 系统架构 -->
+<h2 id="arch">3. 系统架构</h2>
+
+<h3>3.1 技术栈</h3>
+<table>
+  <tr><th>层</th><th>技术</th><th>说明</th></tr>
+  <tr><td>后端框架</td><td>Python + FastAPI</td><td>轻量级、快速开发</td></tr>
+  <tr><td>LLM 调用</td><td>OpenRouter API</td><td>支持多模型切换（GLM-5.3-Flash / Qwen 等）</td></tr>
+  <tr><td>HTTP 客户端</td><td>requests（非 httpx）</td><td>解决 macOS LibreSSL 兼容问题</td></tr>
+  <tr><td>网页解析</td><td>BeautifulSoup4 + feedparser</td><td>RSS + HTML 双模式抓取</td></tr>
+  <tr><td>定时任务</td><td>APScheduler</td><td>每日定时情报采集</td></tr>
+  <tr><td>消息推送</td><td>飞书 Webhook</td><td>情报摘要推送到飞书群</td></tr>
+  <tr><td>评测框架</td><td>自研 AI Evals（Harness 风格）</td><td>YAML 配置 + JSONL 测试集 + 门禁机制</td></tr>
+</table>
+
+<h3>3.2 架构图</h3>
+<pre><code>
+┌──────────────────────────────────────────────────────────┐
+│                    外部信息源                              │
+│  Finextra (RSS)  ·  The Paypers (HTML)  ·  国内支付媒体    │
+└──────────┬───────────────────────────┬───────────────────┘
+           │                             │
+           ▼                             ▼
+┌──────────────────┐          ┌──────────────────┐
+│  intelligence.py │          │    profile.py    │
+│  · RSS 抓取       │          │  · 企业搜索       │
+│  · HTML 抓取      │          │  · LLM 画像生成   │
+│  · 全文提取       │          │                  │
+└────────┬─────────┘          └────────┬─────────┘
+         │                             │
+         ▼                             │
+┌──────────────────┐                   │
+│     llm.py       │◄──────────────────┘
+│  · OpenRouter    │
+│  · 重试 + 退避    │
+│  · JSON 提取      │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐     ┌──────────────────┐
+│    main.py       │────►│   feishu.py      │
+│  · FastAPI       │     │  · Webhook 推送   │
+│  · 定时任务       │     │  · 摘要卡片       │
+│  · REST API      │     └──────────────────┘
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│   eval/run_eval  │
+│  · AI Evals 框架  │
+│  · 13 条测试用例   │
+│  · 门禁 + 基线    │
+└──────────────────┘
+</code></pre>
+
+<h3>3.3 目录结构</h3>
+<pre><code>项目根目录/
+├── app/
+│   ├── main.py            # FastAPI 应用 + 定时任务
+│   ├── intelligence.py    # 情报采集（RSS + HTML）
+│   ├── llm.py             # LLM 封装（OpenRouter + 重试 + JSON 提取）
+│   ├── profile.py         # 客户画像生成
+│   └── feishu.py          # 飞书消息推送
+├── eval/
+│   ├── run_eval.py        # 评测框架核心
+│   ├── goldens.jsonl      # 13 条评测用例（黄金标准）
+│   ├── intelligence.eval.yaml  # 评测任务配置（Harness 风格）
+│   ├── prompts/
+│   │   └── summarize.txt   # 摘要 Prompt 模板
+│   └── .evals/
+│       ├── detailed_report_v2.json   # 详细评测结果
+│       └── report.html                # 可视化报告
+├── .venv/                 # Python 虚拟环境
+└── requirements.txt       # 依赖</code></pre>
+
+<!-- 4. 核心模块 -->
+<h2 id="modules">4. 核心模块</h2>
+
+<h3>4.1 情报采集（intelligence.py）</h3>
+<h4>数据源</h4>
+<table>
+  <tr><th>来源</th><th>类型</th><th>地址</th></tr>
+  <tr><td>Finextra</td><td>RSS</td><td>https://www.finextra.com/rss/headlines.aspx</td></tr>
+  <tr><td>The Paypers</td><td>HTML</td><td>https://thepaypers.com/news</td></tr>
+</table>
+
+<h4>采集流程</h4>
+<pre><code>1. 从 RSS 源解析 feed（feedparser）
+2. 从 HTML 列表页提取文章链接（BeautifulSoup）
+3. 按 cutoff_time 过滤（只保留最近 N 小时）
+4. MD5 去重
+5. 抓取文章全文（httpx + BeautifulSoup）
+6. 返回结构化数据：
+   {
+     "id": "a1b2c3d4",
+     "title": "Fiserv cuts acquiring rates...",
+     "link": "https://www.finextra.com/...",   ← 真实文章 URL
+     "source_name": "Finextra",
+     "published": "2026-08-30T10:00:00",
+     "summary_rss": "原文摘要...",
+     "content": "全文内容..."
+   }</code></pre>
+
+<h3>4.2 LLM 封装（llm.py）</h3>
+<h4>核心特性</h4>
+<ul>
+  <li><strong>OpenRouter API</strong>：支持多模型切换（GLM-5.3-Flash、Qwen-2.5-7B 等）</li>
+  <li><strong>重试机制</strong>：最多 4 次重试，指数退避（3s → 6s → 9s → 12s）</li>
+  <li><strong>JSON 提取</strong>：多策略提取（直接 parse → 正则提取 → 文本搜索）</li>
+  <li><strong>字段归一化</strong>：兼容中英文字段名（"摘要" → "summary_zh"、"关键词" → "tags"）</li>
+  <li><strong>SSL 兼容</strong>：使用 requests 替代 httpx，解决 macOS LibreSSL 问题</li>
+</ul>
+
+<h4>关键代码</h4>
+<pre><code># 带重试的请求
+for attempt in range(MAX_RETRIES):
+    try:
+        resp = requests.post(
+            f"{BASE_URL}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://market-intel.local",
+                "X-Title": "Market Intelligence Platform",
+            },
+            json=body,
+            timeout=60,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        if attempt < MAX_RETRIES - 1:
+            time.sleep(RETRY_DELAY * (attempt + 1))
+        else:
+            raise</code></pre>
+
+<h3>4.3 摘要 Prompt（summarize.txt）</h3>
+<pre><code>你是一名支付行业的收单与银行 IT 情报分析师。
+
+要求：
+1. 中文摘要，80字以内，严格基于原文
+2. 2-4 个关键词标签（收单、银行IT、核心系统、费率...）
+3. 重要性 1-5 分（5分=费率变动/招标/系统替换）
+4. 标注信息来源名称和原始链接
+5. 直接输出 JSON，不输出推理过程
+
+输出格式：
+{
+  "summary_zh": "中文摘要",
+  "tags": ["收单", "费率"],
+  "importance": 5,
+  "source_name": "Finextra",
+  "source_url": "https://..."
+}</code></pre>
+
+<h3>4.4 飞书推送（feishu.py）</h3>
+<p>通过飞书 Webhook 推送格式化的情报卡片，包含摘要、标签、重要性、来源链接。</p>
+
+<h3>4.5 客户画像（profile.py）</h3>
+<p>输入企业名称 → 搜索公开信息 → LLM 生成结构化画像（主营业务、技术栈、近期动态、合作历史）。</p>
+
+<!-- 5. AI Evals -->
+<h2 id="ai-eng">5. AI 工程化实践 — AI Evals</h2>
+
+<div class="callout">
+  <p><strong>核心理念</strong>：AI 系统的质量必须可量化、可回归、可门禁。不能靠"感觉"判断 AI 输出好坏，需要建立自动化评测体系。</p>
+</div>
+
+<h3>5.1 什么是 AI Evals</h3>
+<p>AI Evals 是借鉴软件工程中测试驱动开发的理念，对 AI 系统的输出进行<strong>自动化质量评估</strong>。核心组成：</p>
+<ul>
+  <li><strong>评测集（Goldens）</strong>：人工标注的输入 + 预期输出</li>
+  <li><strong>评测指标（Metrics）</strong>：多维度打分（格式合规、真实性、综合质量）</li>
+  <li><strong>门禁阈值（Thresholds）</strong>：低于阈值即不通过，退出码非零</li>
+  <li><strong>基线对比（Baseline）</strong>：保存历史成绩，检测回归</li>
+</ul>
+
+<h3>5.2 评测框架设计（Harness 风格）</h3>
+
+<h4>配置文件（intelligence.eval.yaml）</h4>
+<pre><code>eval_name: intelligence_summary
+description: 收单与银行IT情报摘要质量评测
+
+metrics:
+  - name: schema_validation
+    threshold: 1.0
+    weight: 0.2
+    description: 输出格式是否合规（必填字段齐全 + 类型正确）
+
+  - name: faithfulness
+    threshold: 0.85
+    weight: 0.4
+    description: 摘要是否真实反映原文（不编造信息）
+
+  - name: geval
+    threshold: 0.7
+    weight: 0.4
+    description: 综合质量（LLM-as-judge，多维度评分）
+
+target:
+  model: z-ai/glm-5.3-flash
+  temperature: 0.3
+
+dataset: eval/goldens.jsonl</code></pre>
+
+<h4>评测集（goldens.jsonl）</h4>
+<p>13 条测试用例，覆盖收单业务和银行 IT 的各类场景：</p>
+<table>
+  <tr><th>ID</th><th>场景</th><th>类型</th><th>来源</th></tr>
+  <tr><td>case-001</td><td>Fiserv 下调收单费率</td><td>收单-费率</td><td>Finextra</td></tr>
+  <tr><td>case-002</td><td>印度 RBI 收单新规</td><td>监管-合规</td><td>The Paypers</td></tr>
+  <tr><td>case-003</td><td>汇丰 + Temenos 核心系统</td><td>银行IT</td><td>Finextra</td></tr>
+  <tr><td>case-004</td><td>Airbnb 切换收单方</td><td>收单-合约</td><td>The Paypers</td></tr>
+  <tr><td>case-005</td><td>健身房扩张（噪音）</td><td>无关内容</td><td>Fitness Business</td></tr>
+  <tr><td>case-006</td><td>工行收单系统招标</td><td>银行IT-招标</td><td>中国金融采购网</td></tr>
+  <tr><td>case-007</td><td>欧盟交换费上限</td><td>费率-监管</td><td>Finextra</td></tr>
+  <tr><td>case-008</td><td>星展 + ACI 收单升级</td><td>银行IT</td><td>The Paypers</td></tr>
+  <tr><td>case-009</td><td>Square 餐厅 POS 发布</td><td>收单-POS</td><td>Finextra</td></tr>
+  <tr><td>case-010</td><td>Salesforce 财报（噪音）</td><td>无关内容</td><td>TechCrunch</td></tr>
+  <tr><td>case-011</td><td>Rapyd MoR 模式</td><td>跨境收单</td><td>The Paypers</td></tr>
+  <tr><td>case-012</td><td>招行科技投入</td><td>银行IT</td><td>中国电子银行网</td></tr>
+  <tr><td>case-013</td><td>拉卡拉财报</td><td>收单-机构</td><td>支付百科</td></tr>
+</table>
+
+<h4>三个评测指标</h4>
+<div class="card-grid">
+  <div class="card">
+    <h4>格式合规（Schema Validation）</h4>
+    <p>权重 20% | 阈值 1.0</p>
+    <p>检查输出是否包含所有必填字段（summary_zh, tags, importance, source_name, source_url），类型正确（tags 是数组，importance 是数字）</p>
+  </div>
+  <div class="card">
+    <h4>真实性（Faithfulness）</h4>
+    <p>权重 40% | 阈值 0.85</p>
+    <p>LLM-as-judge 评估摘要中的每个声明是否能在原文中找到依据，防止 AI 编造信息</p>
+  </div>
+  <div class="card">
+    <h4>综合质量（GEval）</h4>
+    <p>权重 40% | 阈值 0.7</p>
+    <p>LLM-as-judge 多维度评分：摘要准确性、标签相关性、重要性判断合理性（0-1 分）</p>
+  </div>
+</div>
+
+<h4>门禁机制</h4>
+<pre><code># run_eval.py 退出逻辑
+if all([
+    avg_schema >= THRESHOLDS['schema_validation'],
+    avg_faith >= THRESHOLDS['faithfulness'],
+    avg_ge >= THRESHOLDS['geval'],
+]):
+    print("✅ 门禁通过")
+    sys.exit(0)   # CI/CD 可继续
+else:
+    print("❌ 门禁未通过")
+    sys.exit(1)   # CI/CD 阻断部署</code></pre>
+
+<!-- 6. 评测结果 -->
+<h2 id="eval-results">6. 评测结果与模型对比</h2>
+
+<h3>6.1 两轮评测对比</h3>
+<table>
+  <tr>
+    <th>指标</th>
+    <th>Qwen 2.5 7B</th>
+    <th>GLM 5.3 Flash v1</th>
+    <th>GLM 5.3 Flash v2</th>
+    <th>阈值</th>
+  </tr>
+  <tr>
+    <td>格式合规</td>
+    <td><span class="badge badge-green">1.00 ✅</span></td>
+    <td><span class="badge badge-green">1.00 ✅</span></td>
+    <td><span class="badge badge-orange">0.92 ⚠️</span></td>
+    <td>1.0</td>
+  </tr>
+  <tr>
+    <td>真实性</td>
+    <td><span class="badge badge-red">0.00 ❌</span></td>
+    <td><span class="badge badge-orange">0.73 ⚠️</span></td>
+    <td><span class="badge badge-orange">0.81 ⚠️</span></td>
+    <td>0.85</td>
+  </tr>
+  <tr>
+    <td>综合质量</td>
+    <td><span class="badge badge-orange">0.42 ❌</span></td>
+    <td><span class="badge badge-green">0.96 ✅</span></td>
+    <td><span class="badge badge-green">0.88 ✅</span></td>
+    <td>0.7</td>
+  </tr>
+  <tr>
+    <td><strong>综合加权</strong></td>
+    <td><strong>0.37</strong></td>
+    <td><strong>0.88</strong></td>
+    <td><strong>0.86</strong></td>
+    <td>—</td>
+  </tr>
+</table>
+
+<h3>6.2 v2 改进说明</h3>
+<ul>
+  <li><strong>Prompt v2 新增</strong>："严格基于原文，不得添加原文中没有的数字、日期、金额"</li>
+  <li><strong>来源字段</strong>：新增 source_name + source_url，每条摘要可追溯</li>
+  <li><strong>真实性提升</strong>：0.73 → 0.81（case-003 汇丰、case-006 工行从 0 分升到 1.0）</li>
+  <li><strong>格式略降</strong>：1.0 → 0.92（case-013 JSON 提取失败，reasoning 模型 token 截断）</li>
+</ul>
+
+<h3>6.3 真实性问题分析</h3>
+<div class="callout warning">
+  <p><strong>GLM-5.3-Flash 的"推理补全"问题</strong></p>
+  <p>模型倾向于基于常识推理"补全"原文中未明确的具体数字（合同金额、预算、TPS、完成时间）。v2 Prompt 加入"严格基于原文"约束后有所改善，但仍有 2-3 条用例存在此问题。</p>
+</div>
+
+<h3>6.4 评测结论</h3>
+<div class="callout success">
+  <p><strong>AI Evals 工程化实践验证成功 ✅</strong></p>
+  <p>1. 评测框架稳定，13 条用例全部跑通</p>
+  <p>2. 能准确区分不同模型的质量差异（Qwen 0.37 vs GLM 0.86）</p>
+  <p>3. 粒度细，能定位到具体哪条用例、哪个指标有问题</p>
+  <p>4. 门禁机制有效，低于阈值即阻断</p>
+  <p>5. 基线对比功能就绪，支持"改 Prompt → 跑评测 → 对比基线"的迭代闭环</p>
+</div>
+
+<!-- 7. 问题与解决 -->
+<h2 id="issues">7. 遇到的问题与解决方案</h2>
+
+<table>
+  <tr><th>问题</th><th>原因</th><th>解决方案</th></tr>
+  <tr>
+    <td>OpenRouter 403 Forbidden</td>
+    <td>缺少 HTTP-Referer 和 X-Title 请求头</td>
+    <td>添加 OpenRouter 要求的 Headers</td>
+  </tr>
+  <tr>
+    <td>SSL EOF 错误（httpx）</td>
+    <td>macOS Python 3.8 使用 LibreSSL，与 OpenRouter TLS 不兼容</td>
+    <td>从 httpx 切换到 requests 库</td>
+  </tr>
+  <tr>
+    <td>LLM 输出 JSON 解析失败</td>
+    <td>Qwen 模型输出包含 markdown 代码块、多余文本</td>
+    <td>多策略 JSON 提取（直接 parse → 正则 → 文本搜索）</td>
+  </tr>
+  <tr>
+    <td>中文字段名不匹配</td>
+    <td>LLM 输出 "摘要" 而非 "summary_zh"</td>
+    <td>字段归一化映射（FIELD_MAP 支持中英文别名）</td>
+  </tr>
+  <tr>
+    <td>GLM reasoning 模型输出截断</td>
+    <td>推理过程占用 token，最终 JSON 未输出</td>
+    <td>Prompt 加"直接输出 JSON，不输出推理" + 增大 max_tokens 到 2000</td>
+  </tr>
+  <tr>
+    <td>真实性低（编造数字）</td>
+    <td>GLM 基于推理"补全"原文没有的具体信息</td>
+    <td>Prompt 加"严格基于原文，不得添加原文没有的数字"</td>
+  </tr>
+  <tr>
+    <td>评测集来源链接不可点击</td>
+    <td>测试数据是人工编写，URL 为占位符</td>
+    <td>实际系统从 RSS 抓取真实文章 URL（intelligence.py 的 link 字段）</td>
+  </tr>
+</table>
+
+<!-- 8. 关键发现 -->
+<h2 id="findings">8. 关键发现</h2>
+
+<h3>8.1 模型选择至关重要</h3>
+<p>Qwen 2.5 7B 综合质量 0.42，GLM 5.3 Flash 达到 0.88——<strong>同一套 Prompt 和评测框架，模型差异带来 2 倍质量差距</strong>。AI Evals 能量化这种差异，为模型选择提供数据支撑。</p>
+
+<h3>8.2 Prompt 优化可量化</h3>
+<p>加入"严格基于原文"约束后，真实性从 0.73 提升到 0.81。<strong>每一次 Prompt 修改的效果都可以通过评测数据验证</strong>，而不是靠主观感受。</p>
+
+<h3>8.3 评测集设计需要覆盖边界</h3>
+<p>13 条用例包含 2 条噪音文章（健身房、Salesforce 财报），<strong>评测框架能正确识别它们并给出低分</strong>，说明 importance 评级逻辑有效。</p>
+
+<h3>8.4 "推理补全"是小模型的通病</h3>
+<p>GLM-5.3-Flash 的 reasoning 能力导致它倾向"补全"信息。这在使用更大模型（GPT-4o、Claude）时可能会更轻微，但<strong>任何 LLM 都需要真实性评测来兜底</strong>。</p>
+
+<h3>8.5 AI Evals 是 AI 工程化的基础设施</h3>
+<div class="callout">
+  <p>传统软件有单元测试，AI 系统需要 AI Evals。两者逻辑一致：</p>
+  <p>· 测试集 = 黄金标准用例</p>
+  <p>· 断言 = 评测指标 + 阈值</p>
+  <p>· CI 门禁 = 评测门禁（低于阈值阻断部署）</p>
+  <p>· 回归检测 = 基线对比（新版本不能低于历史最佳）</p>
+</div>
+
+<!-- 9. AI-DLC 方法论 -->
+<h2 id="aidlc">9. AI-DLC 工程化方法论</h2>
+
+<div class="callout">
+  <p><strong>背景</strong>：AWS 开源了 <a href="https://github.com/awslabs/aidlc-workflows" style="color: #0071e3;">AI-DLC（AI-Driven Development Life Cycle）</a> 方法论，核心思想是将 AI 定位为开发流程的中央协作者——AI 创建计划、提出澄清问题、获得人类验证后才执行。我们将其三阶段自适应工作流融入本项目的工程化落地。</p>
+</div>
+
+<h3>9.1 AI-DLC 三阶段模型</h3>
+<p>AI-DLC 将软件开发分为三个自适应阶段，每个阶段为下一个阶段提供更丰富的上下文 [$TRAE_REF](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)：</p>
+
+<table>
+  <tr><th width="15%">阶段</th><th width="30%">核心目标</th><th width="30%">关键活动</th><th width="25%">本项目映射</th></tr>
+  <tr>
+    <td><span class="badge badge-blue">Inception</span></td>
+    <td>确定"做什么"和"为什么"</td>
+    <td>需求分析、用户故事、应用设计、工作单元拆分、风险评估</td>
+    <td>已完成：收单+银行IT 聚焦、MVP 范围、风险剔除（LinkedIn 反爬）</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-green">Construction</span></td>
+    <td>确定"怎么做"</td>
+    <td>组件设计、代码生成、构建配置、测试策略、质量验证</td>
+    <td>已完成：5 个模块开发、LLM 集成、AI Evals 框架、13 条评测用例</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-orange">Operations</span></td>
+    <td>部署与监控</td>
+    <td>部署自动化、基础设施即代码、监控与可观测性、生产就绪验证</td>
+    <td><strong>待落地</strong>：CI/CD 评测门禁、定时任务部署、监控告警</td>
+  </tr>
+</table>
+
+<h3>9.2 AI-DLC 五大原则与本项目对齐</h3>
+<table>
+  <tr><th>原则</th><th>AI-DLC 定义</th><th>本项目落地状态</th><th>差距与改进</th></tr>
+  <tr>
+    <td><strong>自适应智能</strong></td>
+    <td>只执行对特定请求有价值的阶段</td>
+    <td>部分实现：评测框架按场景跳过不适用指标</td>
+    <td>增加条件化评测（噪音文章跳过真实性评估）</td>
+  </tr>
+  <tr>
+    <td><strong>上下文感知</strong></td>
+    <td>分析现有代码库和复杂度要求</td>
+    <td>LLM 接收完整文章+来源信息作为上下文</td>
+    <td>增加历史情报上下文传递（多轮记忆）</td>
+  </tr>
+  <tr>
+    <td><strong>基于风险</strong></td>
+    <td>复杂变更全面处理，简单变更保持高效</td>
+    <td>AI Evals 门禁阈值按指标分级（格式 1.0 > 真实 0.85 > 综合 0.7）</td>
+    <td>增加动态阈值（噪音文章降低质量要求）</td>
+  </tr>
+  <tr>
+    <td><strong>问题驱动</strong></td>
+    <td>通过结构化文件提问，而非聊天</td>
+    <td>Prompt 模板以 JSON 结构化输出要求</td>
+    <td>增加多轮澄清机制（低置信度时追问）</td>
+  </tr>
+  <tr>
+    <td><strong>始终可控</strong></td>
+    <td>审查执行计划并批准每个阶段</td>
+    <td>评测门禁人工审批、评测结果可视化报告</td>
+    <td>增加 CI/CD 门禁 + 人工审核流程</td>
+  </tr>
+</table>
+
+<h3>9.3 落地行动：将 AI-DLC 融入工程流程</h3>
+
+<h4>Construction 阶段补强</h4>
+<div class="card-grid">
+  <div class="card">
+    <h4>上下文持久化</h4>
+    <p>AI-DLC 强调跨会话上下文持久化。当前评测结果和 Prompt 版本已存为 JSON/文件。下一步：将情报摘要存入数据库，支持历史检索和趋势分析。</p>
+  </div>
+  <div class="card">
+    <h4>问题驱动澄清</h4>
+    <p>当 LLM 置信度低（重要性=3 且真实性<0.5）时，自动追加澄清问题："这是否涉及收单系统改造？请明确商机类型"。</p>
+  </div>
+</div>
+
+<h4>Operations 阶段建设（重点）</h4>
+<div class="card-grid">
+  <div class="card">
+    <h4>CI/CD 评测门禁</h4>
+    <p>每次 Prompt 或模型变更时，CI 自动运行 <code>python eval/run_eval.py</code>，门禁通过（exit 0）才允许合并。低于基线时发出回归告警。</p>
+  </div>
+  <div class="card">
+    <h4>定时情报采集部署</h4>
+    <p>APScheduler 定时任务部署到 Linux 服务器（解决 SSL 问题），每日 8:00 自动采集 + 摘要 + 推送飞书。</p>
+  </div>
+  <div class="card">
+    <h4>监控与可观测性</h4>
+    <p>记录每次 LLM 调用的耗时、Token 消耗、成功率。监控指标：情报采集成功率、摘要质量评分趋势、API 错误率。</p>
+  </div>
+  <div class="card">
+    <h4>生产就绪验证</h4>
+    <p>上线前 Checklist：SSL 兼容性、API Key 有效性、飞书 Webhook 连通性、评测门禁通过、基线保存完毕。</p>
+  </div>
+</div>
+
+<h3>9.4 AI-DLC 与 AI Evals 的关系</h3>
+<div class="callout success">
+  <p><strong>AI-DLC 是方法论框架，AI Evals 是质量保障工具</strong></p>
+  <p>AI-DLC 的 Construction 阶段要求"质量保证和验证"——这正好对应我们的 AI Evals 评测框架。</p>
+  <p>AI-DLC 的 Operations 阶段要求"生产就绪验证"——这对应 AI Evals 的 CI/CD 门禁机制。</p>
+  <p><strong>本项目已走通了 AI-DLC 的前两个阶段（Inception + Construction），下一步重点建设 Operations 阶段。</strong></p>
+</div>
+
+<h3>9.5 AI-DLC 术语对照</h3>
+<table>
+  <tr><th>传统敏捷</th><th>AI-DLC 术语</th><th>含义变化</th></tr>
+  <tr><td>Sprint（2-4 周）</td><td>Bolt（小时/天）</td><td>更短、更密集的工作周期</td></tr>
+  <tr><td>Epic（大型需求）</td><td>Unit of Work</td><td>AI 拆分的可并行工作单元</td></tr>
+  <tr><td>需求评审会议</td><td>Mob Elaboration</td><td>团队实时验证 AI 的提问和提案</td></tr>
+  <tr><td>代码评审</td><td>Mob Construction</td><td>团队实时澄清技术决策和架构选择</td></tr>
+  <tr><td>测试用例</td><td>Golden Test Cases</td><td>AI Evals 中的黄金标准评测集</td></tr>
+  <tr><td>CI 门禁</td><td>Eval Gate</td><td>评测指标达标才允许部署</td></tr>
+</table>
+
+<!-- 10. 下一步 -->
+<h2 id="roadmap">10. 下一步计划</h2>
+
+<h3>10.1 短期（1 周内）</h3>
+<div class="timeline">
+  <div class="timeline-item">
+    <h4>优化 Prompt 提升真实性</h4>
+    <p>调整 Prompt 约束，目标真实性从 0.81 提升到 0.85+（通过门禁阈值）</p>
+  </div>
+  <div class="timeline-item">
+    <h4>修复 JSON 提取稳定性</h4>
+    <p>解决 case-013 的 JSON 提取失败问题，格式合规恢复到 1.0</p>
+  </div>
+  <div class="timeline-item">
+    <h4>保存评测基线</h4>
+    <p>将 GLM v2 结果存为基线，后续每次 Prompt/模型变更对比基线检测回归</p>
+  </div>
+  <div class="timeline-item">
+    <h4>测试飞书推送</h4>
+    <p>端到端验证：采集 → 摘要 → 飞书卡片推送</p>
+  </div>
+</div>
+
+<h3>10.2 中期（2-4 周）</h3>
+<div class="timeline">
+  <div class="timeline-item">
+    <h4>扩展数据源</h4>
+    <p>增加国内支付媒体（支付百科、中国电子银行网、中国金融采购网）</p>
+  </div>
+  <div class="timeline-item">
+    <h4>客户画像模块完善</h4>
+    <p>基于情报中的企业名称自动生成画像，标注商机类型</p>
+  </div>
+  <div class="timeline-item">
+    <h4>尝试更大模型</h4>
+    <p>用 GPT-4o 或 Claude 跑同一套评测，对比 GLM-5.3-Flash 的质量差距</p>
+  </div>
+  <div class="timeline-item">
+    <h4>部署到 Linux 环境</h4>
+    <p>解决 macOS SSL 兼容问题，实现 RSS 实时抓取</p>
+  </div>
+</div>
+
+<h3>10.3 长期愿景</h3>
+<ul>
+  <li><strong>全自动化情报闭环</strong>：采集 → 摘要 → 评级 → 高价值线索 → 客户画像 → 飞书推送</li>
+  <li><strong>评测驱动迭代</strong>：每次 Prompt/模型变更自动跑评测，门禁把关质量</li>
+  <li><strong>多模型 A/B 对比</strong>：同一评测集对比多个模型，数据驱动选型</li>
+  <li><strong>情报知识库</strong>：历史情报结构化存储，支持检索和趋势分析</li>
+  <li><strong>AI-DLC Operations 全落地</strong>：CI/CD 评测门禁 + 定时部署 + 监控告警 + 生产就绪验证，完成 AI-DLC 三阶段闭环</li>
+</ul>
+
+<hr style="margin: 48px 0; border: none; border-top: 1px solid #d2d2d7;">
+
+<p style="text-align: center; color: #86868b; font-size: 13px;">
+  市场智能情报与获客平台 · 方案文档 v1.1<br>
+  2026-08-30 | MVP 已验证 | AI Evals + AI-DLC 工程化实践
+</p>
+
+</div>
+</body>
+</html>

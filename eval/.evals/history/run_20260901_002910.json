@@ -1,0 +1,16 @@
+{
+  "timestamp": "20260901_002910",
+  "run_at": "2026-09-01 00:29:10",
+  "metrics": {
+    "schema_validation": 1.0,
+    "faithfulness": 0.9192,
+    "geval": 1.0,
+    "overall_weighted": 0.9677
+  },
+  "baseline_comparison": {
+    "baseline_name": "GLM-5.3-Flash v4 (真实数据)",
+    "baseline_score": 1.0,
+    "current_score": 0.9677,
+    "diff": -0.0323
+  }
+}

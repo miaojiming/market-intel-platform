@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>评测报告 v4 - 真实数据</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+h1 { font-size: 28px; color: #58a6ff; margin-bottom: 8px; }
+.subtitle { color: #8b949e; font-size: 14px; margin-bottom: 32px; }
+.score-banner { background: linear-gradient(135deg, #1a7f37, #2ea043); border-radius: 12px; padding: 32px; text-align: center; margin-bottom: 32px; }
+.score-banner .score { font-size: 56px; font-weight: 700; color: #fff; }
+.score-banner .label { font-size: 14px; color: #aff0c0; margin-top: 4px; }
+.metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+.metric-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; }
+.metric-card .name { font-size: 13px; color: #8b949e; margin-bottom: 8px; }
+.metric-card .value { font-size: 32px; font-weight: 700; }
+.metric-card .threshold { font-size: 12px; color: #8b949e; margin-top: 4px; }
+.pass { color: #3fb950; }
+.fail { color: #f85149; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+th { background: #161b22; color: #8b949e; font-size: 12px; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 1px solid #30363d; }
+td { padding: 12px 16px; border-bottom: 1px solid #21262d; font-size: 14px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.badge-pass { background: rgba(59,185,80,0.15); color: #3fb950; }
+.badge-fail { background: rgba(248,81,73,0.15); color: #f85149; }
+.badge-info { background: rgba(88,166,255,0.15); color: #58a6ff; }
+.summary-cell { max-width: 400px; }
+.source-link { color: #58a6ff; text-decoration: none; font-size: 12px; }
+.source-link:hover { text-decoration: underline; }
+.info-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 32px; }
+.info-box h3 { color: #58a6ff; font-size: 16px; margin-bottom: 12px; }
+.info-box ul { list-style: none; }
+.info-box li { padding: 4px 0; color: #c9d1d9; }
+.info-box li::before { content: "▸ "; color: #58a6ff; }
+@media (max-width: 768px) { .metrics-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>评测报告 v4 — 真实数据</h1>
+<p class="subtitle">模型: GLM-5.3-Flash | Prompt v3 | 数据: 10 篇真实网络文章 | 日期: 2026-08-31</p>
+
+<div class="score-banner">
+<div class="score">1.00</div>
+<div class="label">综合加权分（满分）</div>
+</div>
+
+<div class="metrics-row">
+<div class="metric-card">
+<div class="name">格式合规</div>
+<div class="value pass">1.00</div>
+<div class="threshold">阈值 ≥ 1.0 ✅</div>
+</div>
+<div class="metric-card">
+<div class="name">真实性</div>
+<div class="value pass">1.00</div>
+<div class="threshold">阈值 ≥ 0.85 ✅</div>
+</div>
+<div class="metric-card">
+<div class="name">综合质量</div>
+<div class="value pass">1.00</div>
+<div class="threshold">阈值 ≥ 0.7 ✅</div>
+</div>
+</div>
+
+<div class="info-box">
+<h3>数据来源</h3>
+<ul>
+<li>case-001: GlobeNewsWire / Temenos — Sacombank 核心系统升级</li>
+<li>case-002: FIS Press Release — BankSouth 选择 FIS 核心银行平台</li>
+<li>case-003: Nasdaq / RTTNews — Visa/万事达 380亿美元和解</li>
+<li>case-004: Adyen Press Release — Adyen 3.35亿美元收购 Orb</li>
+<li>case-005: 招标与采购网 — 哈尔滨银行收单业务招标</li>
+<li>case-006: 移动支付网 / 东方财富 — 印尼 QRIS 零费率政策</li>
+<li>case-007: UK PSR — 万事达/Visa 定价治理指令</li>
+<li>case-008: Merchant Cost Consulting — 2026交换费率更新</li>
+<li>case-009: RestaurantNews — CRISP & GREEN 扩张（噪音）</li>
+<li>case-010: Salesforce — Q2 FY27 财报（噪音）</li>
+</ul>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>用例</th>
+<th>来源</th>
+<th>摘要</th>
+<th>标签</th>
+<th>重要性</th>
+<th>格式</th>
+<th>真实性</th>
+<th>综合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>case-001</td>
+<td><a class="source-link" href="https://www.globenewswire.com/news-release/2026/08/26/3351621/0/en/sacombank-modernizes-core-banking-with-temenos-and-ibm.html" target="_blank">GlobeNewsWire</a></td>
+<td class="summary-cell">越南Sacombank成功将Temenos核心银行系统升级至混合云，部署于Red Hat OpenShift和IBM Power上，支持数百万客户日处理1300万笔交易。性能提升200%，还选择Temenos Payments Hub支持跨境支付。</td>
+<td>银行IT, 核心系统, Temenos, 跨境收单</td>
+<td>5</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-002</td>
+<td><a class="source-link" href="https://www.fisglobal.com/about-us/media-room/press-release/2026/banksouth-selects-fis-core-banking-platform-to-modernize-operations-and-unlock-ai-readiness" target="_blank">FIS</a></td>
+<td class="summary-cell">资产16亿美元的社区银行BankSouth选择FIS作为核心银行平台，替换现有系统以加速AI和金融科技整合。FIS提供开放API、支付和卡业务能力、反欺诈分析。</td>
+<td>银行IT, 核心系统, FIS</td>
+<td>4</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-003</td>
+<td><a class="source-link" href="https://www.nasdaq.com/articles/visa-and-mastercard-win-preliminary-approval-merchant-fee-settlement" target="_blank">Nasdaq</a></td>
+<td class="summary-cell">美国法官初步批准Visa与万事达380亿美元和解案，涉及1200万商户刷卡费诉讼。两巨头将五年内下调交换费0.1个百分点，商户可拒收高费率卡并加收附加费。</td>
+<td>费率, 收单, 支付机构, 合规</td>
+<td>5</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-004</td>
+<td><a class="source-link" href="https://www.adyen.com/press-and-media/jtrg4qd7j3p4rj" target="_blank">Adyen</a></td>
+<td class="summary-cell">Adyen以3.35亿美元收购企业级计费平台Orb。Orb成立于2021年，提供实时用量数据追踪，服务Vercel等客户。收购旨在打通计费与支付数据，提升反欺诈和交易成功率。</td>
+<td>支付机构, 收单, 并购</td>
+<td>4</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-005</td>
+<td><a class="source-link" href="https://m.zbytb.com/25-0-69102768-1.html" target="_blank">招标与采购网</a></td>
+<td class="summary-cell">哈尔滨银行绥化分行发布收单支付业务合作招标，公开招标第三方收单机构。最高限价：借记卡0.45%、贷记卡0.53%、扫码支付0.23%。要求持支付业务许可证。</td>
+<td>收单, 招标, 费率</td>
+<td>5</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-006</td>
+<td><a class="source-link" href="https://caifuhao.eastmoney.com/news/20260819183226276915960" target="_blank">东方财富</a></td>
+<td class="summary-cell">印尼央行扩大QRIS零费率政策至全部商户，适用于单笔10万印尼盾以内交易，2026年10月实施。旨在降低商户交易成本，与《2030年印尼支付系统蓝图》一致。</td>
+<td>费率, 收单, 合规</td>
+<td>4</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-007</td>
+<td><a class="source-link" href="https://www.psr.org.uk/media/a3wjlyz5/specific-direction-23-pg-july-2026.pdf" target="_blank">UK PSR</a></td>
+<td class="summary-cell">英国支付系统监管机构发布第23号指令，要求万事达和Visa改善英国收单方收费的定价治理。PSR发现两巨头收费大幅增长，费用负担主要落在收单方。</td>
+<td>合规, 费率, 收单, 跨境收单</td>
+<td>5</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-008</td>
+<td><a class="source-link" href="https://merchantcostconsulting.com/lower-credit-card-processing-fees/2026-interchange-updates/" target="_blank">Merchant Cost</a></td>
+<td class="summary-cell">2026年各大卡组织更新交换费率。Visa提高3级商业信用卡Level 2数据费率，4月停用Level 2计划。万事达调整World Elite费率。整体趋势是费率结构更复杂。</td>
+<td>费率, 收单, 合规</td>
+<td>4</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-009</td>
+<td><a class="source-link" href="https://smb.panews.com/article/CRISP-and-GREEN-Expands-Minnesota-Presence-With-Rogers-Opening/6a730de8d21c5e0002cc3061" target="_blank">RestaurantNews</a></td>
+<td class="summary-cell">健康餐饮品牌CRISP & GREEN在明尼苏达州开设第22家门店，由加盟合作伙伴运营。品牌自2016年创立以来在全美已开设53家门店。</td>
+<td>餐饮, 连锁扩张, 与收单无关</td>
+<td>1</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+<tr>
+<td>case-010</td>
+<td><a class="source-link" href="https://www.salesforce.com/news/press-releases/2026/08/26/fy27-q2-earnings/" target="_blank">Salesforce</a></td>
+<td class="summary-cell">Salesforce公布Q2 FY27业绩：营收113亿美元同比增长11%，cRPO达335亿美元增14%，每股收益4.29美元增119%。CEO称AI产品需求强劲，ARR接近40亿美元。</td>
+<td>企业软件, 财报, CRM, 与收单无关</td>
+<td>1</td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+<td><span class="badge badge-pass">1.0</span></td>
+</tr>
+</tbody>
+</table>
+
+<div class="info-box">
+<h3>关键结论</h3>
+<ul>
+<li>10 条真实文章全部满分通过，综合得分 1.00</li>
+<li>来源链接全部可点击打开，指向真实网页</li>
+<li>收单/银行IT 相关文章（case-001~008）重要性评分 4-5 分，准确识别商业机会</li>
+<li>噪音文章（case-009 餐饮扩张、case-010 SaaS财报）重要性评分 1 分，准确过滤无关信息</li>
+<li>真实性 1.00 — Prompt v3 的"真实性红线"有效防止了编造</li>
+<li>case-003 首次因 reasoning 模型 token 不足导致 JSON 提取失败，加大 max_tokens=4000 后通过</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>

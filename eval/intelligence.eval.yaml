@@ -1,0 +1,42 @@
+name: 收单与银行IT情报摘要评测
+
+dataset: ./goldens.jsonl
+
+target:
+  type: prompt
+  prompt: ./prompts/summarize.txt
+  model: {provider: openai, name: gpt-4o-mini}
+
+metrics:
+  - kind: schema_validation
+    threshold: 1.0
+    params:
+      schema:
+        type: object
+        required: [summary_zh, tags, importance]
+        properties:
+          summary_zh:
+            type: string
+          tags:
+            type: array
+          importance:
+            type: integer
+
+  - kind: faithfulness
+    threshold: 0.85
+
+  - kind: geval
+    threshold: 0.7
+    params:
+      criteria: "1. 摘要是否简洁明了，80字以内，准确概括文章核心内容？2. 标签是否与收单/银行IT业务相关且贴切？3. 重要性评分是否合理（收单费率/监管政策/银行系统改造/招标/重大合约应为高分，不相关内容应为低分）？"
+
+judge_llm:
+  provider: openai
+  name: gpt-4o
+
+sinks: [stdout, json]
+
+baseline:
+  store: json
+  path: .evals/baseline.json
+  tolerance: 0.05

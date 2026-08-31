@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI/CD 落地方案</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f6f8fa; color: #1f2328; line-height: 1.8; }
+.container { max-width: 920px; margin: 0 auto; padding: 48px 24px; }
+h1 { font-size: 32px; color: #1f2328; margin-bottom: 8px; }
+h2 { font-size: 22px; color: #1f2328; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #d0d7de; }
+h3 { font-size: 17px; margin: 24px 0 12px; }
+.subtitle { color: #656d76; font-size: 15px; margin-bottom: 40px; }
+.callout { background: #f0f6ff; border-left: 4px solid #0969da; border-radius: 6px; padding: 16px 20px; margin: 16px 0; }
+.callout-success { background: #dafbe1; border-left-color: #1a7f37; }
+.callout-warning { background: #fff8c5; border-left-color: #9a6700; }
+code { background: #eff1f3; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'SF Mono', Consolas, monospace; }
+pre { background: #161b22; color: #c9d1d9; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 12px 0; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th { background: #161b22; color: #f0f6fc; padding: 10px 14px; text-align: left; font-size: 13px; }
+td { padding: 10px 14px; border-bottom: 1px solid #d0d7de; font-size: 14px; }
+.pipeline { display: flex; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pipeline-step { flex: 1; min-width: 140px; background: #fff; border: 2px solid #d0d7de; border-radius: 8px; padding: 16px 12px; text-align: center; position: relative; }
+.pipeline-step.active { border-color: #0969da; background: #f0f6ff; }
+.pipeline-step.done { border-color: #1a7f37; background: #dafbe1; }
+.pipeline-step .num { font-size: 24px; font-weight: 700; color: #0969da; }
+.pipeline-step .name { font-size: 14px; font-weight: 600; margin: 4px 0; }
+.pipeline-step .desc { font-size: 12px; color: #656d76; }
+.pipeline-arrow { display: flex; align-items: center; color: #d0d7de; font-size: 20px; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.badge-blue { background: #ddf4ff; color: #0969da; }
+.badge-green { background: #dafbe1; color: #1a7f37; }
+.badge-orange { background: #fff1e5; color: #bc4c00; }
+.badge-red { background: #ffebe9; color: #cf222e; }
+ul { padding-left: 20px; }
+li { margin: 6px 0; }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li { padding: 6px 0; padding-left: 28px; position: relative; }
+.checklist li::before { content: "☐"; position: absolute; left: 0; font-size: 18px; }
+.checklist li.done::before { content: "☑"; color: #1a7f37; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>CI/CD 落地方案</h1>
+<p class="subtitle">AI-DLC Operations 阶段 — 评测门禁 + 定时部署 + 监控告警</p>
+
+<!-- 流水线总览 -->
+<div class="pipeline">
+<div class="pipeline-step done">
+<div class="num">①</div>
+<div class="name">代码提交</div>
+<div class="desc">git push / PR</div>
+</div>
+<div class="pipeline-arrow">→</div>
+<div class="pipeline-step active">
+<div class="num">②</div>
+<div class="name">评测门禁</div>
+<div class="desc">AI Evals 自动跑</div>
+</div>
+<div class="pipeline-arrow">→</div>
+<div class="pipeline-step">
+<div class="num">③</div>
+<div class="name">合并部署</div>
+<div class="desc">门禁通过 → 合并</div>
+</div>
+<div class="pipeline-arrow">→</div>
+<div class="pipeline-step">
+<div class="num">④</div>
+<div class="name">定时运行</div>
+<div class="desc">每日情报采集</div>
+</div>
+<div class="pipeline-arrow">→</div>
+<div class="pipeline-step">
+<div class="num">⑤</div>
+<div class="name">监控告警</div>
+<div class="desc">每6小时检查</div>
+</div>
+</div>
+
+<!-- 三个工作流 -->
+<h2>三个 GitHub Actions 工作流</h2>
+
+<h3>1. 评测门禁 <span class="badge badge-blue">eval-gate.yml</span></h3>
+<p><strong>触发时机</strong>：Pull Request 修改了 Prompt、LLM 代码、评测集时自动触发</p>
+<p><strong>核心逻辑</strong>：运行 <code>eval_pipeline.py</code> → 退出码 0 通过门禁 → 退出码 1 阻止合并</p>
+<pre><code># .github/workflows/eval-gate.yml
+name: AI Eval Gate
+on:
+  pull_request:
+    paths:
+      - 'eval/prompts/**'
+      - 'app/llm.py'
+      - 'eval/goldens.jsonl'
+      - 'scripts/eval_pipeline.py'
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install deps
+        run: pip install requests feedparser beautifulsoup4 APScheduler
+      - name: Run eval pipeline
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python scripts/eval_pipeline.py
+        # exit 0 = 通过, exit 1 = 回归, 阻止合并</code></pre>
+
+<div class="callout">
+<p><strong>实际效果</strong>：开发者在 PR 里改了 Prompt → GitHub Actions 自动跑 13 条评测 → 如果得分低于基线 0.05 以上，PR 无法合并，并显示哪条用例回归了。</p>
+</div>
+
+<h3>2. 每日情报采集 <span class="badge badge-green">daily-intelligence.yml</span></h3>
+<p><strong>触发时机</strong>：每天北京时间 8:00 自动运行</p>
+<p><strong>核心逻辑</strong>：RSS 采集 → LLM 摘要 → 筛选高价值(importance≥4) → 飞书推送</p>
+<pre><code># .github/workflows/daily-intelligence.yml
+name: Daily Intelligence Report
+on:
+  schedule:
+    - cron: '0 0 * * *'  # UTC 0:00 = 北京时间 8:00
+  workflow_dispatch:      # 手动触发
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install deps
+        run: pip install requests feedparser beautifulsoup4 APScheduler
+      - name: Run intelligence collection
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: |
+          # 采集 → 摘要 → 筛选 → 推送飞书
+          python -c "..."</code></pre>
+
+<div class="callout callout-success">
+<p><strong>实际效果</strong>：每天早上 8 点，系统自动从 Finextra、The Paypers 等源采集最新文章 → GLM 生成中文摘要 → 筛选出高价值情报（费率变动、系统招标等）→ 推送到飞书群。</p>
+</div>
+
+<h3>3. 健康检查 <span class="badge badge-orange">monitor.yml</span></h3>
+<p><strong>触发时机</strong>：每 6 小时自动运行</p>
+<p><strong>核心逻辑</strong>：检查 LLM API 连通性 + 基线状态 + 最近评测趋势 → 异常时告警</p>
+<pre><code># .github/workflows/monitor.yml
+name: Health Check & Monitoring
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Run health check
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          # 1. LLM API 连通性
+          # 2. 基线得分
+          # 3. 最近5次评测趋势
+          # 4. 异常告警 (exit 1)</code></pre>
+
+<!-- 配置步骤 -->
+<h2>配置步骤（5 步上线）</h2>
+
+<ul class="checklist">
+<li class="done">创建 <code>.github/workflows/</code> 目录</li>
+<li class="done">添加三个工作流文件（eval-gate.yml、daily-intelligence.yml、monitor.yml）</li>
+<li>在 GitHub 仓库 Settings → Secrets → Actions 中添加：
+  <ul>
+    <li><code>OPENROUTER_API_KEY</code> = 你的 OpenRouter API Key</li>
+    <li><code>FEISHU_WEBHOOK_URL</code> = 飞书群机器人 Webhook 地址</li>
+  </ul>
+</li>
+<li>提交代码到 GitHub 仓库</li>
+<li>在 Actions 页面手动触发一次 <code>eval-gate</code> 验证流程</li>
+</ul>
+
+<div class="callout callout-warning">
+<p><strong>注意</strong>：GitHub Actions 的 cron 调度有 5-15 分钟延迟，且免费账户每月有限额（2000 分钟）。如果需要更精确的定时，可以考虑：
+<ul>
+<li>使用 GitHub Actions（免费额度内够用，每日运行约 3 分钟/次）</li>
+<li>或部署到云服务器（AWS Lambda / 阿里云函数计算，按调用计费）</li>
+<li>或使用本地 Linux 服务器 + crontab（零成本）</li>
+</ul>
+</p>
+</div>
+
+<!-- 费用估算 -->
+<h2>费用估算</h2>
+<table>
+<tr><th>项目</th><th>方案</th><th>月费用估算</th><th>说明</th></tr>
+<tr><td>GitHub Actions</td><td>免费账户</td><td>¥0</td><td>每月 2000 分钟，每日情报约 3 分钟，评测约 5 分钟，足够</td></tr>
+<tr><td>LLM API (GLM-5.3-Flash)</td><td>OpenRouter</td><td>¥10-30</td><td>每日 20 篇文章 × 30 天 ≈ 600 次调用</td></tr>
+<tr><td>飞书推送</td><td>Webhook</td><td>¥0</td><td>免费</td></tr>
+<tr><td><strong>合计</strong></td><td></td><td><strong>¥10-30/月</strong></td><td>极低成本</td></tr>
+</table>
+
+<!-- 效果对比 -->
+<h2>CI/CD 前后对比</h2>
+<table>
+<tr><th>维度</th><th>没有 CI/CD</th><th>有 CI/CD</th></tr>
+<tr><td>Prompt 改动</td><td>手动跑一下看看，可能遗漏回归</td><td>自动跑 13 条评测，回归阻止合并</td></tr>
+<tr><td>情报采集</td><td>手动运行脚本</td><td>每天 8:00 自动采集 + 推送飞书</td></tr>
+<tr><td>质量监控</td><td>出问题了才知道</td><td>每 6 小时自动检查，异常告警</td></tr>
+<tr><td>模型升级</td><td>凭感觉判断好不好</td><td>同一评测集对比，数据驱动选型</td></tr>
+<tr><td>团队协作</td><td>口头沟通"别改这个"</td><td>PR 门禁自动把关，谁也不能绕过</td></tr>
+</table>
+
+<!-- 工作流文件位置 -->
+<h2>文件位置</h2>
+<table>
+<tr><th>文件</th><th>路径</th><th>说明</th></tr>
+<tr><td><span class="badge badge-blue">eval-gate.yml</span></td><td><code>.github/workflows/eval-gate.yml</code></td><td>评测门禁（PR 触发）</td></tr>
+<tr><td><span class="badge badge-green">daily-intelligence.yml</span></td><td><code>.github/workflows/daily-intelligence.yml</code></td><td>每日情报（定时触发）</td></tr>
+<tr><td><span class="badge badge-orange">monitor.yml</span></td><td><code>.github/workflows/monitor.yml</code></td><td>健康检查（每6小时）</td></tr>
+<tr><td><span class="badge badge-blue">eval_pipeline.py</span></td><td><code>scripts/eval_pipeline.py</code></td><td>评测流水线核心</td></tr>
+<tr><td><span class="badge badge-blue">add_golden.py</span></td><td><code>scripts/add_golden.py</code></td><td>添加新用例工具</td></tr>
+</table>
+
+<!-- 开发者工作流 -->
+<h2>开发者日常工作流</h2>
+<div class="callout">
+<p><strong>改 Prompt 的标准流程：</strong></p>
+<pre><code># 1. 修改 Prompt
+vim eval/prompts/summarize.txt
+
+# 2. 本地跑一次评测验证
+python scripts/eval_pipeline.py
+
+# 3. 确认无回归后提交
+git add -A
+git commit -m "优化Prompt：加强真实性约束"
+git push
+
+# 4. 创建 PR → GitHub Actions 自动跑评测门禁
+# 5. 门禁通过（exit 0）→ 合并 → 自动更新基线
+# 6. 门禁失败（exit 1）→ 查看哪条用例回归 → 修复 → 重新提交</code></pre>
+</div>
+
+<!-- AI-DLC 对齐 -->
+<h2>与 AI-DLC 三阶段对齐</h2>
+<table>
+<tr><th>AI-DLC 阶段</th><th>本项目实现</th><th>状态</th></tr>
+<tr><td><span class="badge badge-blue">Inception</span></td><td>需求定义、MVP 范围、风险评估</td><td>✅ 已完成</td></tr>
+<tr><td><span class="badge badge-green">Construction</span></td><td>代码开发、AI Evals 框架、13 条评测集</td><td>✅ 已完成</td></tr>
+<tr><td><span class="badge badge-orange">Operations</span></td><td>CI/CD 门禁 + 定时部署 + 监控告警</td><td>📋 工作流已就绪，推送 GitHub 即生效</td></tr>
+</table>
+
+<div class="callout callout-success">
+<p><strong>三个工作流文件已创建好</strong>，推送到 GitHub 仓库后立即生效。只需在仓库 Secrets 里配置 <code>OPENROUTER_API_KEY</code> 和 <code>FEISHU_WEBHOOK_URL</code> 两个密钥即可。</p>
+</div>
+
+</div>
+</body>
+</html>

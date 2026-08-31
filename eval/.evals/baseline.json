@@ -1,0 +1,20 @@
+{
+  "baseline_name": "GLM-5.3-Flash v4 (真实数据)",
+  "created_at": "2026-08-31 23:58:34",
+  "model": "z-ai/glm-5.3-flash",
+  "prompt_version": "v3 (真实性红线 + JSON 修复)",
+  "data_source": "real articles from web",
+  "metrics": {
+    "schema_validation": 1.0,
+    "faithfulness": 1.0,
+    "geval": 1.0,
+    "overall_weighted": 1.0,
+    "thresholds": {
+      "schema_validation": 1.0,
+      "faithfulness": 0.85,
+      "geval": 0.7
+    },
+    "all_passed": true
+  },
+  "cases_count": 10
+}
