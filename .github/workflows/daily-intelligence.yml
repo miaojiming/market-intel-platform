@@ -24,7 +24,9 @@ jobs:
 
       - name: Run intelligence collection
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: https://openrouter.ai/api/v1
+          LLM_MODEL: z-ai/glm-5.3-flash
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           LLM_MAX_RETRIES: '4'
           LLM_RETRY_DELAY: '3'

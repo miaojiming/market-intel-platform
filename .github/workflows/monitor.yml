@@ -23,7 +23,9 @@ jobs:
 
       - name: Run health check
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LLM_BASE_URL: https://openrouter.ai/api/v1
+          LLM_MODEL: z-ai/glm-5.3-flash
         run: |
           python -c "
           import os, sys, json, time
