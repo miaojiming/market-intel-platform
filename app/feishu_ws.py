@@ -6,9 +6,24 @@
 import os
 import json
 import threading
+import asyncio
 from typing import Dict, Any
 from dotenv import load_dotenv
 
+# 在 import lark_oapi 之前，先给 asyncio.get_event_loop 打补丁
+# 原因：lark_oapi.ws 模块级代码会调用 asyncio.get_event_loop()
+# 如果此时已有运行中的事件循环（如 FastAPI/uvicorn），会拿到那个 loop
+# 导致后续 client.start() 报 "This event loop is already running"
+# 解决方案：在 import lark_oapi 前，让 get_event_loop 总是返回新 loop
+_original_get_event_loop = asyncio.get_event_loop
+_patched_loop = asyncio.new_event_loop()
+
+def _patched_get_event_loop():
+    return _patched_loop
+
+asyncio.get_event_loop = _patched_get_event_loop
+
+# 现在 import lark_oapi，ws 模块会拿到我们创建的新 loop
 import lark_oapi as lark
 from lark_oapi import ws
 from lark_oapi.api.im.v1 import (
@@ -16,6 +31,14 @@ from lark_oapi.api.im.v1 import (
     P2ImMessageReceiveV1Data,
     Message,
 )
+
+# 恢复原来的 get_event_loop
+asyncio.get_event_loop = _original_get_event_loop
+
+# 同时需要确保 ws 模块的 loop 变量是我们创建的那个
+# 这样 client.start() 会用这个独立的 loop
+import lark_oapi.ws.client as _ws_client
+_ws_client.loop = _patched_loop
 
 from app.profile import generate_profile
 from app.feishu import (
@@ -194,12 +217,14 @@ def handle_message(event: P2ImMessageReceiveV1):
 
 
 def start_ws_client():
-    """启动长连接客户端"""
+    """启动长连接客户端（在独立线程中运行专用事件循环）"""
     if not APP_ID or not APP_SECRET:
         print("[Feishu WS] 未配置 FEISHU_APP_ID 或 FEISHU_APP_SECRET，跳过长连接")
         return None
 
-    # 创建事件处理器（builder 模式注册事件）
+    print(f"[Feishu WS] 正在建立长连接... (app_id: {APP_ID})")
+
+    # 创建事件处理器
     builder = lark.EventDispatcherHandler.builder("", "")
     builder.register_p2_im_message_receive_v1(handle_message)
     event_handler = builder.build()
@@ -213,20 +238,22 @@ def start_ws_client():
         auto_reconnect=True,
     )
 
-    print(f"[Feishu WS] 正在建立长连接... (app_id: {APP_ID})")
-
-    # 启动长连接（阻塞式，放在后台线程运行）
-    def _run():
+    # 在独立线程中运行长连接
+    # ws 模块的事件循环是我们创建的独立 loop（_patched_loop）
+    # 与 FastAPI 的事件循环完全隔离
+    def _run_ws():
         try:
+            print("[Feishu WS] 长连接客户端启动中...")
+            asyncio.set_event_loop(_patched_loop)
             client.start()
         except Exception as e:
             print(f"[Feishu WS] 长连接异常退出: {e}")
 
-    t = threading.Thread(target=_run, daemon=True)
+    t = threading.Thread(target=_run_ws, daemon=True)
     t.start()
 
-    print("[Feishu WS] 长连接已启动")
-    return client
+    print("[Feishu WS] 长连接已启动（后台线程）")
+    return None
 
 
 if __name__ == "__main__":
