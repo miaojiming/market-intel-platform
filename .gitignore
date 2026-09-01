@@ -16,6 +16,12 @@ env/
 output/
 *.log
 
+# Eval results (temporary, regenerated)
+eval/.evals/profile_eval_*.json
+eval/.evals/eval_result_*.json
+eval/.evals/detailed_report_*.json
+eval/.evals/history/
+
 # Secrets
 .env
 secrets/

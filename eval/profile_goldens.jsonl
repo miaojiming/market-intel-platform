@@ -1,0 +1,8 @@
+{"id": "profile-001", "company": "DBS Bank", "company_cn": "星展银行", "expected_type": "银行", "expected_has_acquiring": true, "difficulty": "easy"}
+{"id": "profile-002", "company": "HSBC", "company_cn": "汇丰银行", "expected_type": "银行", "expected_has_acquiring": true, "difficulty": "easy"}
+{"id": "profile-003", "company": "ICBC", "company_cn": "中国工商银行", "expected_type": "银行", "expected_has_acquiring": true, "difficulty": "medium"}
+{"id": "profile-004", "company": "China Merchants Bank", "company_cn": "招商银行", "expected_type": "银行", "expected_has_acquiring": true, "difficulty": "medium"}
+{"id": "profile-005", "company": "Adyen", "company_cn": "Adyen", "expected_type": "收单机构", "expected_has_acquiring": true, "difficulty": "easy"}
+{"id": "profile-006", "company": "Fiserv", "company_cn": "Fiserv", "expected_type": "科技厂商", "expected_has_acquiring": true, "difficulty": "easy"}
+{"id": "profile-007", "company": "Lakala", "company_cn": "拉卡拉", "expected_type": "收单机构", "expected_has_acquiring": true, "difficulty": "medium"}
+{"id": "profile-008", "company": "Stripe", "company_cn": "Stripe", "expected_type": "收单机构", "expected_has_acquiring": true, "difficulty": "easy"}
