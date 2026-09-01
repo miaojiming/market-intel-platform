@@ -199,11 +199,10 @@ def start_ws_client():
         print("[Feishu WS] 未配置 FEISHU_APP_ID 或 FEISHU_APP_SECRET，跳过长连接")
         return None
 
-    # 创建事件处理器
-    event_handler = lark.EventDispatcherHandler.builder("", "").build()
-
-    # 注册消息接收事件
-    event_handler.register_p2_im_message_receive_v1(handle_message)
+    # 创建事件处理器（builder 模式注册事件）
+    builder = lark.EventDispatcherHandler.builder("", "")
+    builder.register_p2_im_message_receive_v1(handle_message)
+    event_handler = builder.build()
 
     # 创建长连接客户端
     client = ws.Client(
