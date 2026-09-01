@@ -15,7 +15,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.intelligence import run_intelligence_daily
 from app.profile import generate_profile
-from app.feishu import send_intelligence_card, send_profile_card, reply_text
+from app.feishu import (
+    send_intelligence_card,
+    send_profile_card,
+    reply_text,
+    parse_command,
+    get_help_text,
+)
 
 load_dotenv()
 
@@ -78,28 +84,38 @@ async def feishu_webhook(request: Request):
     text = content.get("text", "").strip()
 
     # 只处理文本消息
-    if msg_type != "text" or not text:
+    if msg_type != "text":
         return {"code": 0}
 
-    # 去掉 @机器人 的提及
-    # 飞书的文本消息里 @ 会以 <at user_id="xxx">名字</at> 形式出现
-    import re
-    text = re.sub(r"<at[^>]*>[^<]*</at>", "", text).strip()
+    # 解析指令
+    cmd = parse_command(text)
 
-    if not text:
-        return {"code": 0}
-
-    # 后台线程处理（避免飞书重试）
+    # 后台线程处理（避免飞书重试 3 秒超时）
     def _handle():
         try:
-            # 回复"正在生成"的提示
-            reply_text(message_id, f"🔍 正在查询「{text}」的画像，请稍候...")
+            if cmd["command"] == "help":
+                reply_text(message_id, get_help_text())
+                return
 
-            # 生成画像
-            profile = generate_profile(text)
+            if cmd["command"] == "profile":
+                company = cmd["company"]
+                if not company:
+                    reply_text(message_id, "请告诉我要查询的公司名称，例如：@情报助手 星展银行")
+                    return
 
-            # 发送画像卡片
-            send_profile_card(profile, chat_id=chat_id)
+                # 回复"正在生成"的提示
+                reply_text(message_id, f"🔍 正在查询「{company}」的画像，请稍候...")
+
+                # 生成画像
+                profile = generate_profile(company)
+
+                # 发送画像卡片
+                send_profile_card(profile, chat_id=chat_id)
+                return
+
+            # 未知指令
+            reply_text(message_id, "我不太明白你的意思，发送 /help 查看使用方法")
+
         except Exception as e:
             print(f"[Webhook] 处理失败: {e}")
             reply_text(message_id, "❌ 画像生成失败，请稍后重试")

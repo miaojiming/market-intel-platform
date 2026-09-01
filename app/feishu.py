@@ -238,3 +238,49 @@ def reply_text(message_id: str, text: str) -> bool:
     except Exception as e:
         print(f"[Feishu] 回复失败: {e}")
         return False
+
+
+def parse_command(text: str) -> dict:
+    """
+    解析用户消息，识别指令
+    返回: {"command": "profile"|"help"|"unknown", "company": "xxx"}
+    """
+    text = text.strip()
+
+    # 去掉 @提及
+    import re
+    text = re.sub(r"<at[^>]*>[^<]*</at>", "", text).strip()
+
+    if not text:
+        return {"command": "help", "company": ""}
+
+    # /profile 公司名
+    m = re.match(r"^/profile\s+(.+)$", text, re.IGNORECASE)
+    if m:
+        return {"command": "profile", "company": m.group(1).strip()}
+
+    # 直接发公司名（@机器人 + 公司名）
+    # 排除以 / 开头的指令
+    if not text.startswith("/"):
+        return {"command": "profile", "company": text}
+
+    # /help
+    if text.lower() in ("/help", "/帮助", "帮助", "help"):
+        return {"command": "help", "company": ""}
+
+    return {"command": "unknown", "company": ""}
+
+
+def get_help_text() -> str:
+    """帮助信息"""
+    return """🤖 **情报助手使用指南**
+
+**查询客户画像**：
+  • @情报助手 + 公司名
+  • 例如：@情报助手 星展银行
+  • 或直接发：/profile 招商银行
+
+**其他指令**：
+  • /help — 显示帮助信息
+
+每天早上 8:00 自动推送收单&银行IT情报日报 ✉️"""
