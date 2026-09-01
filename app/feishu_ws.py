@@ -28,8 +28,6 @@ import lark_oapi as lark
 from lark_oapi import ws
 from lark_oapi.api.im.v1 import (
     P2ImMessageReceiveV1,
-    P2ImMessageReceiveV1Data,
-    Message,
 )
 
 # 恢复原来的 get_event_loop
@@ -156,8 +154,16 @@ def _send_card_with_api(chat_id: str, profile: dict) -> bool:
 def handle_message(event: P2ImMessageReceiveV1):
     """处理接收消息事件"""
     try:
-        data: P2ImMessageReceiveV1Data = event.data
-        message: Message = data.message
+        # 事件结构: event.event.message (EventMessage, 不是 Message)
+        event_data = event.event
+        if not event_data:
+            print("[Feishu WS] 事件无 event_data")
+            return
+
+        message = event_data.message
+        if not message:
+            print("[Feishu WS] 事件无 message")
+            return
 
         message_id = message.message_id
         chat_id = message.chat_id
@@ -175,6 +181,26 @@ def handle_message(event: P2ImMessageReceiveV1):
 
         text = content.get("text", "").strip()
 
+        # 去掉 @机器人 的部分（群聊中 @机器人 会在文本里加 @_user_1 之类）
+        # 同时 mentions 里会有被 @ 的对象
+        if message.mentions:
+            for mention in message.mentions:
+                # 移除 @name 形式的文本
+                name = getattr(mention, "name", "") or getattr(mention, "key", "")
+                if name and name in text:
+                    text = text.replace(f"@{name}", "").strip()
+                # 移除 @_user_1 形式的占位符
+                key = getattr(mention, "key", "")
+                if key and key in text:
+                    text = text.replace(key, "").strip()
+
+        text = text.strip()
+        if not text:
+            _reply_with_api(message_id, "你想查询哪家公司的画像？直接告诉我公司名就行～")
+            return
+
+        print(f"[Feishu WS] 收到消息: {text[:50]} (chat_id: {chat_id})")
+
         # 解析指令
         cmd = parse_command(text)
 
@@ -189,7 +215,7 @@ def handle_message(event: P2ImMessageReceiveV1):
                     company = cmd["company"]
                     if not company:
                         _reply_with_api(
-                            message_id, "请告诉我要查询的公司名称，例如：@情报助手 星展银行"
+                            message_id, "请告诉我要查询的公司名称，例如：@影分身一号 星展银行"
                         )
                         return
 
@@ -203,8 +229,10 @@ def handle_message(event: P2ImMessageReceiveV1):
                     _send_card_with_api(chat_id, profile)
                     return
 
-                # 未知指令
-                _reply_with_api(message_id, "我不太明白你的意思，发送 /help 查看使用方法")
+                # 默认就是 profile 指令（直接 @机器人 + 公司名）
+                _reply_with_api(message_id, f"🔍 正在查询「{text}」的画像，请稍候...")
+                profile = generate_profile(text)
+                _send_card_with_api(chat_id, profile)
 
             except Exception as e:
                 print(f"[Feishu WS] 处理消息失败: {e}")
@@ -214,6 +242,8 @@ def handle_message(event: P2ImMessageReceiveV1):
 
     except Exception as e:
         print(f"[Feishu WS] 事件处理异常: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def start_ws_client():
