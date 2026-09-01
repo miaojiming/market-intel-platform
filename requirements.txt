@@ -6,5 +6,5 @@ httpx==0.26.0
 requests==2.31.0
 feedparser==6.0.11
 beautifulsoup4==4.12.3
-lark-oapi==1.2.0
+lark-oapi==1.7.3
 apscheduler==3.10.4

@@ -22,6 +22,7 @@ from app.feishu import (
     parse_command,
     get_help_text,
 )
+from app.feishu_ws import start_ws_client
 
 load_dotenv()
 
@@ -162,7 +163,7 @@ def scheduled_intelligence():
 
 @app.on_event("startup")
 def start_scheduler():
-    """启动定时任务"""
+    """启动定时任务 + 飞书长连接"""
     # 每天早上 8:00 推送情报日报
     scheduler.add_job(
         scheduled_intelligence,
@@ -174,6 +175,9 @@ def start_scheduler():
     )
     scheduler.start()
     print("[Scheduler] 定时任务已启动，每天 8:00 推送情报日报")
+
+    # 启动飞书长连接（接收消息）
+    start_ws_client()
 
 
 @app.on_event("shutdown")
