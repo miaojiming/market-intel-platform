@@ -42,7 +42,7 @@ def chat(
 ) -> str:
     """
     调用 LLM，返回文本结果
-    使用 curl 子进程以规避 macOS 系统 Python LibreSSL 兼容性问题
+    优先用 requests（Linux/生产环境），macOS 下回退到 curl（规避 LibreSSL 问题）
     """
     use_model = model or MODEL
     messages = [
@@ -60,20 +60,18 @@ def chat(
     if json_mode:
         body["response_format"] = {"type": "json_object"}
 
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+        **EXTRA_HEADERS,
+    }
+    url = f"{BASE_URL}/chat/completions"
+
     # 带重试的请求
     last_error = None
     for attempt in range(MAX_RETRIES):
         try:
-            content = _curl_post(
-                url=f"{BASE_URL}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {API_KEY}",
-                    "Content-Type": "application/json",
-                    **EXTRA_HEADERS,
-                },
-                body=body,
-                timeout=TIMEOUT,
-            )
+            content = _http_post(url, headers, body, TIMEOUT)
             return content
         except Exception as e:
             last_error = e
@@ -85,6 +83,75 @@ def chat(
             else:
                 print(f"[LLM Error] 重试 {MAX_RETRIES} 次后仍然失败: {e}")
                 raise last_error
+
+
+# 检测是否可用 requests（Linux 环境通常可用，macOS LibreSSL 可能有问题）
+_requests_available = None
+_requests_error = None
+
+def _check_requests() -> bool:
+    global _requests_available, _requests_error
+    if _requests_available is not None:
+        return _requests_available
+    try:
+        import requests  # noqa: F401
+        _requests_available = True
+    except Exception as e:
+        _requests_available = False
+        _requests_error = str(e)
+    return _requests_available
+
+
+def _http_post(url: str, headers: dict, body: dict, timeout: int = 120) -> str:
+    """
+    发送 HTTP POST 请求，返回 message.content
+    优先用 requests，失败回退到 curl（macOS LibreSSL 兼容）
+    """
+    if _check_requests():
+        try:
+            return _requests_post(url, headers, body, timeout)
+        except Exception as e:
+            # 如果是 SSL 相关错误，降级到 curl
+            if "SSL" in str(e) or "ssl" in str(e) or "TLS" in str(e):
+                print(f"[LLM] requests SSL 错误，降级到 curl: {e}")
+                return _curl_post(url, headers, body, timeout)
+            raise
+    else:
+        return _curl_post(url, headers, body, timeout)
+
+
+def _requests_post(url: str, headers: dict, body: dict, timeout: int = 120) -> str:
+    """使用 requests 库发送 POST 请求"""
+    import requests
+
+    resp = requests.post(url, headers=headers, json=body, timeout=timeout)
+    try:
+        data = resp.json()
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"响应不是合法 JSON: {resp.text[:200]}") from e
+
+    if resp.status_code >= 400:
+        raise RuntimeError(f"API 错误 (HTTP {resp.status_code}): {data.get('error', resp.text[:200])}")
+
+    if "error" in data:
+        raise RuntimeError(f"API 错误: {data['error']}")
+
+    if "choices" not in data or not data["choices"]:
+        raise RuntimeError(f"响应格式异常，缺少 choices: {str(data)[:200]}")
+
+    content = data["choices"][0]["message"]["content"]
+    if content is None:
+        content = data["choices"][0]["message"].get("reasoning", "")
+        if not content:
+            raise RuntimeError("响应内容为空")
+
+    # reasoning 模型可能在 content 里输出推理过程 + JSON
+    if "{" not in content:
+        reasoning = data["choices"][0]["message"].get("reasoning", "")
+        if "{" in reasoning:
+            content = reasoning
+
+    return content
 
 
 def _curl_post(url: str, headers: dict, body: dict, timeout: int = 120) -> str:

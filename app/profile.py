@@ -90,13 +90,20 @@ def _build_source_urls(company: str) -> List[Dict]:
     urls.append(
         {"name": "官网 About", "url": f"https://www.{domain}/about", "priority": 2}
     )
-    urls.append(
-        {
-            "name": "官网收单业务",
-            "url": f"https://www.{domain}/payments/merchant-services",
-            "priority": 3,
-        }
-    )
+    # 收单/支付业务页面（尝试多个常见路径，失败自动跳过）
+    acquiring_paths = [
+        "/payments",
+        "/merchants",
+        "/business",
+    ]
+    for path in acquiring_paths:
+        urls.append(
+            {
+                "name": "官网收单业务",
+                "url": f"https://www.{domain}{path}",
+                "priority": 3,
+            }
+        )
 
     return urls
 
