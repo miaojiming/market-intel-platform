@@ -243,7 +243,7 @@ def reply_text(message_id: str, text: str) -> bool:
 def parse_command(text: str) -> dict:
     """
     解析用户消息，识别指令
-    返回: {"command": "profile"|"help"|"unknown", "company": "xxx"}
+    返回: {"command": "profile"|"today"|"intel"|"help"|"unknown", "company"/"query": "xxx"}
     """
     text = text.strip()
 
@@ -259,21 +259,67 @@ def parse_command(text: str) -> dict:
     if m:
         return {"command": "profile", "company": m.group(1).strip()}
 
+    # 今日情报：/today、/今日、今日情报
+    if text.lower() in ("/today", "/今日") or text in ("今日情报", "今天情报", "今日高分情报"):
+        return {"command": "today", "query": ""}
+
+    # 关键词检索：/intel 关键词、/检索 关键词、检索 X、查一下 X
+    m = re.match(r"^/(?:intel|检索|情报)\s+(.+)$", text, re.IGNORECASE)
+    if m:
+        return {"command": "intel", "query": m.group(1).strip()}
+    m = re.match(r"^(?:检索|查一下|搜索)\s+(.+)$", text)
+    if m:
+        return {"command": "intel", "query": m.group(1).strip()}
+
+    # /help（放在裸文本回退前，让「帮助」不带斜杠也生效）
+    if text.lower() in ("/help", "/帮助", "帮助", "help"):
+        return {"command": "help", "company": ""}
+
     # 直接发公司名（@机器人 + 公司名）
     # 排除以 / 开头的指令
     if not text.startswith("/"):
         return {"command": "profile", "company": text}
 
-    # /help
-    if text.lower() in ("/help", "/帮助", "帮助", "help"):
-        return {"command": "help", "company": ""}
-
     return {"command": "unknown", "company": ""}
+
+
+def build_intel_reply_card(items: List[Dict], title: str) -> dict:
+    """
+    构造情报查询结果卡片（供机器人 im API 回复用，非 webhook）
+    items: intel_query 归一化记录 [{title, weight, link, section, subsection, summary, tags, source}]
+    """
+    elements = []
+    for i, r in enumerate(items, 1):
+        tags = " ".join(f"【{t}】" for t in r.get("tags", []))
+        sec = f"{r.get('section', '')}/{r.get('subsection', '')}".strip("/")
+        summary = (r.get("summary") or "")[:100]
+        elements.append(
+            {
+                "tag": "markdown",
+                "content": f"**{i}. [{r.get('weight', 0)}分] {r.get('title', '')}**\n"
+                f"{sec} {tags}\n{summary}\n"
+                f"[原文({r.get('source', '')})]({r.get('link', '#')})",
+            }
+        )
+        if i < len(items):
+            elements.append({"tag": "hr"})
+    if not elements:
+        elements = [{"tag": "markdown", "content": "没有匹配的情报 🤔 换个关键词试试？"}]
+    return {
+        "config": {"wide_screen_mode": True},
+        "header": {"title": {"tag": "plain_text", "content": title}, "template": "blue"},
+        "elements": elements,
+    }
 
 
 def get_help_text() -> str:
     """帮助信息"""
     return """🤖 **情报助手使用指南**
+
+**情报查询**：
+  • /today 或「今日情报」— 今日高分情报 Top5
+  • /intel 关键词 或「检索 SCB」— 全库检索
+  • 例如：/intel 虚拟银行
 
 **查询客户画像**：
   • @情报助手 + 公司名

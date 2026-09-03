@@ -43,8 +43,10 @@ from app.feishu import (
     send_profile_card,
     parse_command,
     get_help_text,
+    build_intel_reply_card,
     _get_tenant_access_token,
 )
+from app import intel_query
 
 load_dotenv()
 
@@ -151,6 +153,32 @@ def _send_card_with_api(chat_id: str, profile: dict) -> bool:
         return False
 
 
+def _send_interactive_card(chat_id: str, card: dict) -> bool:
+    """发送交互卡片到指定会话（情报查询结果等复用）"""
+    token = _get_tenant_access_token()
+    if not token or not chat_id:
+        print("[Feishu WS] 缺 token 或 chat_id，无法发送卡片")
+        return False
+    url = "https://open.feishu.cn/open-apis/im/v1/messages"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "receive_id": chat_id,
+        "msg_type": "interactive",
+        "content": json.dumps(card, ensure_ascii=False),
+    }
+    try:
+        import httpx
+        with httpx.Client() as client:
+            resp = client.post(url, headers=headers, params={"receive_id_type": "chat_id"}, json=body, timeout=15)
+            return resp.status_code == 200
+    except Exception as e:
+        print(f"[Feishu WS] 情报卡片发送失败: {e}")
+        return False
+
+
 def handle_message(event: P2ImMessageReceiveV1):
     """处理接收消息事件"""
     try:
@@ -209,6 +237,23 @@ def handle_message(event: P2ImMessageReceiveV1):
             try:
                 if cmd["command"] == "help":
                     _reply_with_api(message_id, get_help_text())
+                    return
+
+                # 今日高分情报
+                if cmd["command"] == "today":
+                    _reply_with_api(message_id, "🔍 正在查询今日情报…")
+                    items = intel_query.query_today(top_n=5)
+                    _send_interactive_card(chat_id, build_intel_reply_card(items, "📰 今日情报 Top5"))
+                    return
+
+                # 关键词检索
+                if cmd["command"] == "intel":
+                    kw = cmd.get("query", "")
+                    _reply_with_api(message_id, f"🔍 正在全库检索「{kw}」…")
+                    items = intel_query.query_keyword(kw, top_n=5)
+                    _send_interactive_card(
+                        chat_id, build_intel_reply_card(items, f"🔎 情报检索：{kw}（Top5）")
+                    )
                     return
 
                 if cmd["command"] == "profile":

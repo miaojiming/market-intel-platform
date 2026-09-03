@@ -9,7 +9,7 @@ on:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -22,16 +22,22 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run intelligence collection
+      - name: Run intelligence pipeline (collect → score → bitable → push)
         env:
           LLM_API_KEY: ${{ secrets.LLM_GATEWAY_API_KEY }}
           LLM_BASE_URL: https://llm-gw.agenzo.com/v1
           LLM_MODEL: kiro/claude-opus-5
-          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          LLM_SCORING_MODEL: kiro/gpt-5.6-sol
           LLM_MAX_RETRIES: '4'
           LLM_RETRY_DELAY: '3'
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          # 多维表格写入需要自建应用身份（需已开通 bitable:app 并被加为 Base 协作者）
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          BITABLE_APP_TOKEN: IjRjbhMNZaCR3YsvenrcIyk2nXg
+          BITABLE_TABLE_ID: tblHfzfRCBqjAfVD
         run: |
-          python scripts/daily_report.py
+          python scripts/daily_pipeline.py
 
       - name: Upload intelligence report
         if: always()
