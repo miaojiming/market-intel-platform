@@ -40,6 +40,16 @@ jobs:
           LLM_RETRY_DELAY: '3'
         run: python scripts/eval_pipeline.py
 
+      - name: Run Scoring Eval Gate (金标准回归)
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_GATEWAY_API_KEY }}
+          LLM_BASE_URL: https://llm-gw.agenzo.com/v1
+          LLM_MODEL: kiro/claude-opus-5
+          LLM_SCORING_MODEL: kiro/gpt-5.6-sol
+          LLM_MAX_RETRIES: '4'
+          LLM_RETRY_DELAY: '3'
+        run: python eval/scoring_eval.py
+
       - name: Upload eval results
         if: always()
         uses: actions/upload-artifact@v4
