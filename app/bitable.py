@@ -131,6 +131,35 @@ def create_record(item: Dict) -> Optional[str]:
         return None
 
 
+def update_record_fields(record_id: str, fields: Dict) -> bool:
+    """更新指定记录的部分字段（v1 PUT，格式约定同 to_v1_fields）"""
+    try:
+        resp = requests.put(
+            f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
+            f"/tables/{BITABLE_TABLE_ID}/records/{record_id}",
+            headers=_headers(),
+            json={"fields": fields},
+            timeout=20,
+        )
+        data = resp.json()
+        if data.get("code") == 0:
+            return True
+        print(f"[Bitable] 更新失败 code={data.get('code')}: {data.get('msg')} | rid={record_id}")
+        return False
+    except Exception as e:
+        print(f"[Bitable] 更新异常: {e}")
+        return False
+
+
+def mark_pushed(record_ids: List[str]) -> int:
+    """把已推送记录的状态改为「已推送」，返回成功条数"""
+    ok = 0
+    for rid in record_ids:
+        if update_record_fields(rid, {"状态": "已推送"}):
+            ok += 1
+    return ok
+
+
 def weighted_score(item: Dict) -> float:
     """本地复算权重分（与多维表格公式列同口径 0.4/0.4/0.2），用于推送过滤"""
     th = item.get("thailand_relevance") or 0

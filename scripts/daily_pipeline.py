@@ -144,7 +144,10 @@ def main():
     for i, item in enumerate(fresh, 1):
         print(f"  [{i}/{len(fresh)}] {item['title'][:50]}…")
         content = fetch_article_content(item["link"])
-        summary = summarize_article(item["title"], content or item["summary_rss"])
+        summary = summarize_article(
+            item["title"], content or item["summary_rss"],
+            source_name=item.get("source_name", ""), source_url=item.get("link", ""),
+        )
         item.update(summary)  # summary_zh / tags / importance(卡片兼容)
 
         score = score_intel(item)
@@ -160,6 +163,7 @@ def main():
         if not args.dry_run:
             rid = bitable.create_record(item)
             if rid:
+                item["record_id"] = rid
                 written += 1
             else:
                 continue
@@ -167,7 +171,7 @@ def main():
             pushed_candidates.append(item)
         time.sleep(0.3)
 
-    # 4. 推送（权重分≥6，TOP10；卡片沿用 importance 星级 → weight 映射）
+    # 4. 推送（权重分≥6，TOP10）+ 状态流转（已推送）
     pushed_candidates.sort(key=lambda x: x["weight_score"], reverse=True)
     top = pushed_candidates[:PUSH_TOP_N]
     for t in top:
@@ -178,6 +182,10 @@ def main():
         from app.feishu import send_intelligence_card
         ok = send_intelligence_card(top)
         print(f"[Pipeline] 推送 {'成功' if ok else '失败'}: {len(top)} 条（≥{PUSH_THRESHOLD} 分）")
+        if ok:
+            rids = [t["record_id"] for t in top if t.get("record_id")]
+            marked = bitable.mark_pushed(rids)
+            print(f"[Pipeline] 状态流转: {marked}/{len(rids)} 条标记已推送")
 
     # 5. 本地留档（与 daily_report 输出保持同目录）
     out = Path("output")
