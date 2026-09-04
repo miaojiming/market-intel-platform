@@ -72,28 +72,47 @@ def send_webhook_message(title: str, content: str) -> bool:
 def send_intelligence_card(items: List[Dict]) -> bool:
     """
     发送情报日报卡片（Top N）
-    items: [{title, summary_zh, tags, importance, source_url, source_name}]
+    items: [{title, summary_zh, tags, importance, source_url, source_name,
+             weight_score?, section?, thailand_relevance?, opportunity_strength?, timeliness?}]
+    新管道条目带权重分时展示三维分版式，旧条目回退星级版式。
     """
     if not items:
         return False
 
     elements = []
     for i, item in enumerate(items, 1):
-        stars = "⭐" * item.get("importance", 3)
-        tags_str = " ".join(f"【{t}】" for t in item.get("tags", []))
         summary = item.get("summary_zh", "")
         source = item.get("source_name", "")
         url = item.get("source_url", "#")
+        tags_str = " ".join(f"【{t}】" for t in item.get("tags", []) or item.get("tags_v1", []))
 
-        elements.append(
-            {
-                "tag": "markdown",
-                "content": f"**{i}. {item.get('title', '')}**\n"
-                f"{stars} {tags_str}\n"
-                f"{summary}\n"
-                f"[原文链接({source})]({url})",
-            }
-        )
+        if item.get("weight_score") is not None:
+            # 新管道：权重分 + 三维分 + 板块
+            th = item.get("thailand_relevance", "-")
+            op = item.get("opportunity_strength", "-")
+            ti = item.get("timeliness", "-")
+            sec = f"{item.get('section', '')}/{item.get('subsection', '')}".strip("/")
+            head = f"**{i}. [{item['weight_score']}分] {item.get('title', '')}**"
+            metrics = f"🎯 泰国相关 {th} · 💼 商机 {op} · ⏱ 时效 {ti}" + (f"\n📂 {sec}" if sec else "")
+            elements.append(
+                {
+                    "tag": "markdown",
+                    "content": f"{head}\n{metrics}\n{tags_str}\n{summary}\n"
+                    f"[原文链接({source})]({url})",
+                }
+            )
+        else:
+            # 旧版兼容：星级
+            stars = "⭐" * item.get("importance", 3)
+            elements.append(
+                {
+                    "tag": "markdown",
+                    "content": f"**{i}. {item.get('title', '')}**\n"
+                    f"{stars} {tags_str}\n"
+                    f"{summary}\n"
+                    f"[原文链接({source})]({url})",
+                }
+            )
         if i < len(items):
             elements.append({"tag": "hr"})
 
@@ -275,8 +294,9 @@ def parse_command(text: str) -> dict:
     if text.lower() in ("/help", "/帮助", "帮助", "help"):
         return {"command": "help", "company": ""}
 
-    # 打招呼不当作公司名查画像
-    if text.lower() in ("hi", "hello", "你好", "在吗", "在"):
+    # 打招呼不当作公司名查画像（容忍语气词：你好呀/hello哈 之类）
+    greeting = re.sub(r"[呀啊哈哟~～！!。.]+$", "", text).strip().lower()
+    if greeting in ("hi", "hello", "你好", "您好", "在吗", "在", "hey", "hi你"):
         return {"command": "help", "company": ""}
 
     # 直接发公司名（@机器人 + 公司名）
@@ -323,7 +343,7 @@ def get_help_text() -> str:
 **情报查询**：
   • /today 或「今日情报」— 今日高分情报 Top5
   • /intel 关键词 或「检索 SCB」— 全库检索
-  • 例如：/intel 虚拟银行
+  • 也可以直接说人话：「最近有什么高价值的情报？」「查一下虚拟银行相关的」
 
 **查询客户画像**：
   • @情报助手 + 公司名
@@ -334,3 +354,43 @@ def get_help_text() -> str:
   • /help — 显示帮助信息
 
 每天早上 8:00 自动推送收单&银行IT情报日报 ✉️"""
+
+
+# ============ 自然语言意图路由 ============
+# 触发条件：非命令的口语化消息（带空格/疑问/动词短语），交给 LLM 分类；
+# 短公司名（如「星展银行」）走原有 profile 快路径，不额外过 LLM。
+ROUTER_SYSTEM_PROMPT = """你是飞书消息意图分类器。用户对支付行业情报机器人发了一条消息，判断意图：
+- today: 想看今天/最新/高分情报推送
+- intel: 想按主题关键词检索情报库（query 提取检索关键词，1-4个词）
+- profile: 想查询某家公司/银行/机构的客户画像（query=机构名）
+- help: 打招呼或问机器人怎么用
+只输出JSON: {"intent":"today|intel|profile|help","query":"..."}"""
+
+_ROUTE_HINTS = ("情报", "最新", "今天", "今日", "最近", "查", "搜索", "检索", "发我", "看看", "有没有", "什么", "帮", "?", "？")
+
+
+def needs_intent_routing(text: str) -> bool:
+    """口语化消息才走路由：含提示词或较长（含空格的句子）"""
+    t = text.strip()
+    if len(t) >= 8:
+        return True
+    return any(k in t for k in _ROUTE_HINTS)
+
+
+def route_intent(text: str) -> dict:
+    """LLM 意图路由，失败回退 profile（原行为）"""
+    from app.llm import chat_json
+
+    try:
+        r = chat_json(
+            f"消息内容: {text}",
+            system_prompt=ROUTER_SYSTEM_PROMPT,
+            temperature=0,
+            max_tokens=100,
+        )
+        intent = r.get("intent")
+        if intent in ("today", "intel", "profile", "help"):
+            return {"command": intent, "query": str(r.get("query", "")).strip()}
+    except Exception as e:
+        print(f"[Feishu] 意图路由失败,回退 profile: {e}")
+    return {"command": "profile", "query": text.strip()}

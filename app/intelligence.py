@@ -225,14 +225,16 @@ def fetch_article_content(url: str) -> str:
         return ""
 
 
-def summarize_article(title: str, content: str) -> dict:
+def summarize_article(title: str, content: str, source_name: str = "", source_url: str = "") -> dict:
     """
     调用 LLM 生成摘要 + 标签 + 重要性评分
     """
     # 如果内容太短，用 RSS summary 代替
     article_text = content if len(content) > 200 else title + "\n" + content
 
-    prompt = SUMMARIZE_PROMPT.format(article=article_text)
+    prompt = SUMMARIZE_PROMPT.format(
+        article=article_text, source_name=source_name or "未知", source_url=source_url or "无"
+    )
 
     try:
         result = chat_json(prompt, temperature=0.3, max_tokens=500)
@@ -270,7 +272,10 @@ def run_intelligence_daily(hours: int = 24, top_n: int = TOP_N) -> List[Dict]:
         content = fetch_article_content(article["link"])
 
         # 生成摘要
-        summary_data = summarize_article(article["title"], content)
+        summary_data = summarize_article(
+            article["title"], content,
+            source_name=article.get("source_name", ""), source_url=article.get("link", ""),
+        )
 
         # 合并数据
         item = {

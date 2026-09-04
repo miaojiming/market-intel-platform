@@ -3,10 +3,14 @@
 - 摘要模型（LLM_MODEL, kiro/claude-opus-5）负责中文摘要 + 翻译
 - 打分模型（LLM_SCORING_MODEL, kiro/gpt-5.6-sol）独立第二遍调用，负责：
   三维权重打分（泰国相关度/商机强度/时效性 0-10）+ 板块/二级菜单分类 + 标签
+
+Prompt 单一真相在 eval/prompts/scoring.txt（eval-gate CI 对其变更做金标准回归），
+本模块运行时读取该文件，读不到时用内置副本兜底（保持部署健壮性）。
 prompt 已在 76 条存量情报上验证（2026-09-03，76/76 成功）。
 """
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Dict
 
 from app.llm import chat_json
@@ -24,21 +28,40 @@ TAG_OPTIONS = [
     "稳定币", "会议展会", "银行动态", "投融资", "反洗钱", "AI应用",
 ]
 
-SCORE_SYSTEM_PROMPT = f"""你是支付行业情报打分器。对一条情报完成分类与三维打分(0-10整数)。
+_FALLBACK_PROMPT = """你是支付行业情报打分器。对一条情报完成分类与三维打分(0-10整数)。
 
 分类:
-- section 板块，二选一: {", ".join(SECTIONS)}
-- subsection 二级菜单，八选一: {", ".join(SUBSECTIONS)}
+- section 板块，二选一: 行业新闻, 招标机会
+- subsection 二级菜单，八选一: 行业会议, 行业新闻, 技术趋势动态, 政策与监管新闻, 政府/银行招标公告, 数字化转型规划, 合约到期与更换窗口预测, 在网系统现状摸底
 
 打分维度:
 - thailand_relevance 泰国相关度:与泰国支付/收单市场的相关程度。仅泛东南亚或全球=1-4;提及泰国但非主角=5-7;泰国为核心主题=8-10
 - opportunity_strength 商机强度:对收单/卡支付/银行IT服务商的销售线索价值。招标公告/费率变动/核心系统更换/大客户进泰国=8-10;产品发布/重要合作/影响市场的监管变化=4-7;一般行业动态/会议花絮/背景分析=1-3
 - timeliness 时效性:价值窗口。进行中的招标/即将召开的会议/新发布政策=8-10;近期动态=4-7;历史背景/多年前事件/已结束=1-3
 
-再从这些标签里选0-3个最贴切的: {", ".join(TAG_OPTIONS)}
+分类消歧:
+- 以新闻形式报道但实质是供应商选定/系统替换/采购窗口信号的(如'银行选定X厂商升级核心系统'),归 招标机会
+- 与泰国无关的一般国际采购/融资/监管动态,归 行业新闻
+
+再从这些标签里选0-3个最贴切的: 收单费率, 招标公告, 核心系统, 监管政策, 数字钱包, 跨境支付, 稳定币, 会议展会, 银行动态, 投融资, 反洗钱, AI应用
 
 只输出JSON,不要多余文本:
-{{"section":"...","subsection":"...","thailand_relevance":n,"opportunity_strength":n,"timeliness":n,"reason":"一句话中文理由不超过40字","tags":["..."]}}"""
+{"section":"...","subsection":"...","thailand_relevance":n,"opportunity_strength":n,"timeliness":n,"reason":"一句话中文理由不超过40字","tags":["..."]}"""
+
+
+def _load_score_prompt() -> str:
+    """优先读 eval/prompts/scoring.txt（单一真相），失败用内置兜底"""
+    p = Path(__file__).resolve().parent.parent / "eval" / "prompts" / "scoring.txt"
+    try:
+        text = p.read_text(encoding="utf-8").strip()
+        if text:
+            return text
+    except OSError:
+        pass
+    return _FALLBACK_PROMPT
+
+
+SCORE_SYSTEM_PROMPT = _load_score_prompt()
 
 
 def score_intel(item: Dict) -> Dict:

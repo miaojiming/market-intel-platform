@@ -5,8 +5,12 @@ on:
     paths:
       - 'eval/prompts/**'
       - 'app/llm.py'
+      - 'app/scoring.py'
+      - 'app/prompts.py'
       - 'eval/goldens.jsonl'
+      - 'eval/scoring_goldens.jsonl'
       - 'eval/run_eval.py'
+      - 'eval/scoring_eval.py'
       - 'scripts/eval_pipeline.py'
   workflow_dispatch:
 

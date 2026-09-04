@@ -44,6 +44,8 @@ from app.feishu import (
     parse_command,
     get_help_text,
     build_intel_reply_card,
+    needs_intent_routing,
+    route_intent,
     _get_tenant_access_token,
 )
 from app import intel_query
@@ -235,6 +237,12 @@ def handle_message(event: P2ImMessageReceiveV1):
         # 后台线程处理（避免阻塞长连接）
         def _handle():
             try:
+                # 口语化消息先过 LLM 意图路由（短公司名走原 profile 快路径）
+                if cmd["command"] == "profile" and needs_intent_routing(cmd.get("company", "")):
+                    cmd_routed = route_intent(cmd.get("company", ""))
+                    cmd.update(cmd_routed)
+                    print(f"[Feishu WS] 意图路由: {text[:40]!r} -> {cmd['command']} ({cmd.get('query','')})")
+
                 if cmd["command"] == "help":
                     _reply_with_api(message_id, get_help_text())
                     return
@@ -257,6 +265,7 @@ def handle_message(event: P2ImMessageReceiveV1):
                     return
 
                 if cmd["command"] == "profile":
+                    company = cmd.get("company") or cmd.get("query", "")
                     company = cmd["company"]
                     if not company:
                         _reply_with_api(
