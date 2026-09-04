@@ -275,6 +275,10 @@ def parse_command(text: str) -> dict:
     if text.lower() in ("/help", "/帮助", "帮助", "help"):
         return {"command": "help", "company": ""}
 
+    # 打招呼不当作公司名查画像
+    if text.lower() in ("hi", "hello", "你好", "在吗", "在"):
+        return {"command": "help", "company": ""}
+
     # 直接发公司名（@机器人 + 公司名）
     # 排除以 / 开头的指令
     if not text.startswith("/"):

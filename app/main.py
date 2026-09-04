@@ -164,17 +164,23 @@ def scheduled_intelligence():
 @app.on_event("startup")
 def start_scheduler():
     """启动定时任务 + 飞书长连接"""
-    # 每天早上 8:00 推送情报日报
-    scheduler.add_job(
-        scheduled_intelligence,
-        "cron",
-        hour=8,
-        minute=0,
-        id="daily_intelligence",
-        replace_existing=True,
-    )
-    scheduler.start()
-    print("[Scheduler] 定时任务已启动，每天 8:00 推送情报日报")
+    # 每日情报管道已由 GitHub Actions 定时执行（ADR 0001），
+    # 本服务专职交互机器人长连接；旧版本地定时任务默认关闭，
+    # 仅在显式设置 ENABLE_LOCAL_SCHEDULER=1 时启用（本地调试用），
+    # 否则常驻部署时会在 8:00 与 GH Actions 双份推送旧版日报。
+    if os.getenv("ENABLE_LOCAL_SCHEDULER") == "1":
+        scheduler.add_job(
+            scheduled_intelligence,
+            "cron",
+            hour=8,
+            minute=0,
+            id="daily_intelligence",
+            replace_existing=True,
+        )
+        scheduler.start()
+        print("[Scheduler] 本地定时任务已启动（ENABLE_LOCAL_SCHEDULER=1）")
+    else:
+        print("[Scheduler] 每日管道由 GitHub Actions 执行，本地定时任务未启用")
 
     # 启动飞书长连接（接收消息）
     start_ws_client()
