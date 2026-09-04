@@ -1,20 +1,48 @@
 {
-  "baseline_name": "GLM-5.3-Flash v4 (真实数据)",
-  "created_at": "2026-08-31 23:58:34",
-  "model": "z-ai/glm-5.3-flash",
-  "prompt_version": "v3 (真实性红线 + JSON 修复)",
-  "data_source": "real articles from web",
+  "timestamp": "20260904_102808",
+  "run_at": "2026-09-04 10:28:08",
   "metrics": {
-    "schema_validation": 1.0,
-    "faithfulness": 1.0,
-    "geval": 1.0,
-    "overall_weighted": 1.0,
-    "thresholds": {
-      "schema_validation": 1.0,
-      "faithfulness": 0.85,
-      "geval": 0.7
-    },
-    "all_passed": true
+    "schema_validation": 0.9231,
+    "faithfulness": 0.9115,
+    "geval": 0.8054,
+    "overall_weighted": 0.8714
   },
-  "cases_count": 10
+  "comparison": {
+    "status": "regression",
+    "diffs": {
+      "schema_validation": {
+        "old": 1.0,
+        "new": 0.9231,
+        "diff": -0.0769,
+        "trend": "↓"
+      },
+      "faithfulness": {
+        "old": 1.0,
+        "new": 0.9115,
+        "diff": -0.0885,
+        "trend": "↓"
+      },
+      "geval": {
+        "old": 1.0,
+        "new": 0.8054,
+        "diff": -0.1946,
+        "trend": "↓"
+      },
+      "overall_weighted": {
+        "old": 1.0,
+        "new": 0.8714,
+        "diff": -0.1286,
+        "trend": "↓"
+      }
+    },
+    "regressions": [
+      "schema_validation: 1.00 → 0.92 (↓0.08)",
+      "faithfulness: 1.00 → 0.91 (↓0.09)",
+      "geval: 1.00 → 0.81 (↓0.19)",
+      "overall_weighted: 1.00 → 0.87 (↓0.13)"
+    ],
+    "message": "检测到回归!"
+  },
+  "created_at": "2026-09-04",
+  "baseline_name": "baseline-reanchor-2026-09-04"
 }
