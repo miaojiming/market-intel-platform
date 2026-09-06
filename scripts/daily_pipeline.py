@@ -30,8 +30,8 @@ from app import bitable
 
 # 每日全渠道采集上限（控制 LLM 成本与表格增量）
 DAILY_MAX = int(os.getenv("PIPELINE_DAILY_MAX", "40"))
-# 每渠道条数上限
-PER_CHANNEL_MAX = 10
+# 每渠道条数上限（控制单组查询占比，避免被宽查询淹没）
+PER_CHANNEL_MAX = 5
 # 推送阈值与上限（共识：权重分≥6 且 TOP10/日）
 PUSH_THRESHOLD = 6.0
 PUSH_TOP_N = 10
@@ -58,7 +58,7 @@ def collect(hours: int) -> list:
             "language": language,
         })
 
-    # 1) Google News RSS 检索式 ×19
+    # 1) Google News RSS 检索式 ×20（全部 Thailand 强制限定）
     for query in GOOGLE_NEWS_QUERIES:
         try:
             feed = feedparser.parse(google_news_feed_url(query, when="7d"))

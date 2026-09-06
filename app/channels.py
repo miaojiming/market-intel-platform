@@ -1,7 +1,7 @@
 """
 泰国市场情报采集渠道配置
 来源：飞书《渠道验证清单》2026-09-03 实测结论，仅纳入 ✅可爬 渠道（ADR 0001）
-- Google News RSS 检索式 × 19 组（主力渠道，覆盖收单/招标/监管/数字银行等多个角度）
+- Google News RSS 检索式 × 20 组（全部 Thailand 强制限定，覆盖收单/核心系统/监管/数字银行等角度）
 - 固定源 RSS × 5 个（含本地关键词过滤）
 e-GP 政府采购 API 待密钥获批后接入（渠道清单 🔑 待办）
 """
@@ -9,26 +9,31 @@ e-GP 政府采购 API 待密钥获批后接入（渠道清单 🔑 待办）
 # ============ Google News RSS 检索式 ============
 # 单查询最多返回 ~96 条；when 参数控制时间窗，管道按发布时间二次过滤
 GOOGLE_NEWS_QUERIES = [
-    '"Money20/20 Asia" OR "Bangkok FinTech Fair" OR "Seamless Asia" fintech',
-    "PromptPay cross-border QR linkage Thailand",
-    'Thailand digital wallet TrueMoney OR ShopeePay OR "Rabbit LINE Pay"',
-    'biometric payment OR "AI fraud detection" Thailand bank',
-    'tokenization OR "network tokenisation" Southeast Asia card payment',
-    "Thailand bank payment partnership OR acquisition OR launch",
-    '"Bank of Thailand" regulation payment OR virtual bank OR open banking',
-    "Thailand payment summit OR conference fintech 2026",
-    "Thailand PDPA enforcement fine data protection",
-    "Thailand bank tender OR procurement IT system contract award",
-    "Thailand bank replaces OR migrates legacy payment platform",
-    # 以下为扩充查询（覆盖收单/招标/数字银行/CBDC/电子采购等更多角度）
-    "Thailand merchant acquiring OR payment gateway bank",
-    'Thailand "e-GP" OR "e-procurement" OR government IT system bidding',
-    "Thailand CBDC OR retail digital currency central bank pilot",
-    "Thailand digital bank OR neobank OR virtual bank license",
-    "Thailand e-KYC OR digital identity verification bank payment",
-    "Thailand e-commerce payment COD OR installment buy now pay later",
-    "Thailand bank cybersecurity OR data breach OR ransomware finance",
-    "Thailand BNPL OR buy now pay later OR consumer credit payment",
+    # 收单与支付核心
+    "Thailand AND (merchant acquiring OR payment gateway OR point of sale OR POS terminal)",
+    "Thailand AND (PromptPay QR OR cross-border payment OR digital wallet OR mobile payment)",
+    "Thailand AND (TrueMoney OR ShopeePay OR \"Rabbit LINE Pay\" OR \"AirPay\" OR mPay)",
+    # 银行与核心系统
+    "Thailand AND (bank payment partnership OR bank acquisition OR bank launch fintech)",
+    "Thailand AND (core banking system replacement OR core banking upgrade OR payment platform migration)",
+    "Thailand AND (bank tender OR bank procurement OR bank RFP OR bank bidding IT system)",
+    # 监管与政策
+    'Thailand AND ("Bank of Thailand" OR BOT) AND (regulation OR policy OR guideline OR circular)',
+    "Thailand AND (open banking OR open API OR data sharing bank)",
+    "Thailand AND (PDPA OR data protection OR data localization OR cybersecurity bank)",
+    # 新兴技术与趋势
+    "Thailand AND (CBDC OR central bank digital currency OR digital baht)",
+    "Thailand AND (virtual bank OR digital bank OR neobank OR digital banking license)",
+    "Thailand AND (e-KYC OR digital identity OR biometric verification OR e-KYC payment)",
+    "Thailand AND (BNPL OR \"buy now pay later\" OR consumer finance OR installment payment)",
+    "Thailand AND (tokenization OR network tokenisation OR card payment security)",
+    # 事件与动态
+    'Thailand AND (fintech conference OR fintech summit OR "Money20/20" OR "Seamless Asia")',
+    "Thailand AND (bank award OR bank ranking OR fintech investment OR funding)",
+    # 电商与零售
+    "Thailand AND (e-commerce payment OR COD payment OR online checkout OR payment orchestration)",
+    "Thailand AND (sme payment OR small business payment OR merchant onboarding)",
+    "Thailand AND (cross-border e-commerce OR cross-border trade payment OR remittance)",
 ]
 
 GOOGLE_NEWS_CHANNEL = "Google News RSS"
