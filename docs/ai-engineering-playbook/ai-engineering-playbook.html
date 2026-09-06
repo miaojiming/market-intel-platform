@@ -552,7 +552,7 @@
       <div class="label">生产环境上线</div>
     </div>
     <div class="metric">
-      <div class="num">3 人</div>
+      <div class="num">7 人</div>
       <div class="label">最小团队规模</div>
     </div>
   </div>
@@ -581,7 +581,7 @@
 <section id="team">
   <h2>二、团队组建与角色分工</h2>
 
-  <p>AI 项目的团队配置不同于传统软件开发——需要业务深度参与、AI 工程化能力、基础设施支持三者的紧密配合。最小可行团队由 3 个角色组成。</p>
+  <p>AI 项目的团队配置不同于传统软件开发——需要业务深度参与、AI 工程化能力、基础设施支持三者的紧密配合。最小可行团队由 3 个角色组成，共 7 人配置。</p>
 
   <div class="callout">
     <strong>核心原则</strong>：角色清晰但边界灵活。小团队中，每个人都需要跨界理解——产品要懂评测，AI 工程师要懂业务，DevOps 要理解 AI 系统的特殊性。
@@ -1224,7 +1224,7 @@ flowchart LR
 <section id="practices">
   <h2>六、核心工程化实践</h2>
 
-  <p>AI 系统与传统软件最大的不同在于输出的概率性。传统单元测试不适用，需要一套新的质量保障体系。以下是本项目验证有效的 6 大核心工程化实践。</p>
+  <p>AI 系统与传统软件最大的不同在于输出的概率性。传统单元测试不适用，需要一套新的质量保障体系。以下是本项目验证有效的 7 大核心工程化实践。</p>
 
   <h3 id="evals">6.1 AI Evals 质量体系</h3>
 
@@ -1470,6 +1470,154 @@ flowchart LR
   <div class="callout success">
     <strong>效果</strong>：经过六层防御后，格式合规率从初期的 ~92% 提升到 100%，LLM 调用成功率从 ~80% 提升到 99%+。
   </div>
+
+  <h3 id="scoring-eval">6.7 打分评测系统实战</h3>
+
+  <p>前面 6.1–6.3 介绍了摘要模型的 AI Evals 体系。但打分模型（三维权重打分 + 分类）与摘要模型的评测需求完全不同：打分输出是<strong>连续数值</strong>而非文本摘要，LLM-as-Judge 无法直接评判"8 分还是 7 分更准确"。本节记录打分评测系统从设计到落地的完整过程。</p>
+
+  <div class="callout">
+    <strong>核心区别</strong>：摘要评测用 LLM-as-Judge 打分（质量高/低），打分评测用 MAE + 分桶准确率测量模型输出与人工标注的<strong>偏差大小</strong>。前者问"好不好"，后者问"准不准"。
+  </div>
+
+  <h4>评测指标设计（5 维度）</h4>
+  <div class="table-wrap" style="max-height:none">
+    <table>
+      <thead>
+        <tr>
+          <th>维度</th>
+          <th>评测方式</th>
+          <th>阈值</th>
+          <th>设计理由</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>板块准确率</strong></td>
+          <td>精确匹配 (section)</td>
+          <td>≥ 0.85</td>
+          <td>分类是一刀切指标，错了直接导致情报分发到错误板块</td>
+        </tr>
+        <tr>
+          <td><strong>泰国相关度 MAE</strong></td>
+          <td>平均绝对误差</td>
+          <td>≤ 1.0</td>
+          <td>0-10 分制，MAE ≤ 1.0 意味着平均偏差不超过 1 分</td>
+        </tr>
+        <tr>
+          <td><strong>商机强度 MAE</strong></td>
+          <td>平均绝对误差</td>
+          <td>≤ 1.0</td>
+          <td>商机判断直接影响销售线索优先级，偏差需控制在 1 分以内</td>
+        </tr>
+        <tr>
+          <td><strong>时效性分桶准确率</strong></td>
+          <td>分桶命中 + 边界容差</td>
+          <td>≥ 0.80</td>
+          <td>时效性 0-10 太精确，改用高/中/低三桶，容差 ±1 分</td>
+        </tr>
+        <tr>
+          <td><strong>格式合规</strong></td>
+          <td>结构校验</td>
+          <td>1.0（100%）</td>
+          <td>JSON 结构 + 枚举值合法性，安全类指标绝对阈值</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warning">
+    <strong>关键设计决策：分桶 vs MAE</strong>——时效性评分 7 分和 8 分在实际业务中差异不大（都是"较新"），用 MAE 衡量会产生虚假精度。改用高 (≥8) / 中 (4-7) / 低 (&lt;4) 三桶，并允许边界 ±1 容差，更贴近业务判断逻辑。
+  </div>
+
+  <h4>金标准设计（6 场景 × 40 条）</h4>
+  <p>金标准（Golden Standard）是评测的"标准答案"。打分评测的金标准需要产品业务方人工标注，不能用 AI 生成——否则就是 AI 给 AI 打分，失去校准意义。</p>
+
+  <div class="table-wrap" style="max-height:none">
+    <table>
+      <thead>
+        <tr>
+          <th>场景</th>
+          <th>条数</th>
+          <th>覆盖目标</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A. 收单 SaaS 厂商动态</strong></td><td>8</td><td>Adyen/Opn/2C2P/Worldpay 等产品发布、获牌、合作、收购</td></tr>
+        <tr><td><strong>B. 收单独立部署项目</strong></td><td>6</td><td>银行 RFP/核心系统替换/大客户系统部署/在网系统摸底</td></tr>
+        <tr><td><strong>C. 核心向收单延伸</strong></td><td>6</td><td>银行核心改造可能扩展到收单模块，间接商机</td></tr>
+        <tr><td><strong>D. 支付监管政策</strong></td><td>6</td><td>BOT 新规/费率政策/数据合规要求，可能引发系统改造</td></tr>
+        <tr><td><strong>E. 噪音负样本</strong></td><td>6</td><td>非泰国/非支付/加密货币/消费金融，验证排束能力</td></tr>
+        <tr><td><strong>F. 边界模糊案例</strong></td><td>8</td><td>相关度 4-7 分的中段样本，最考验打分精度</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout danger">
+    <strong>血泪教训</strong>：初期金标准只有 20 条，且板块严重不均衡（招标机会仅 30%），中段样本（相关度 4-6 分）仅 2 条。扩充到 40 条、覆盖 6 类场景后，评测结果才具有统计显著性。<strong>金标准样本不足 = 评测结果不可信</strong>。
+  </div>
+
+  <h4>三轮迭代过程</h4>
+  <div class="phase-block done">
+    <div class="phase-title">第一轮：首次评测，暴露偏差</div>
+    <div class="phase-duration">Day 1</div>
+    <p>用 20 条金标准跑首次评测。结果：商机强度 MAE = 1.07（超标）、时效性分桶准确率仅 55%（远低于 0.80 阈值）、板块准确率 100%。</p>
+    <p><strong>根因分析</strong>：① 金标准定义与 Prompt 不一致——SaaS 获牌商机标 5-6 分，但 Prompt 定义"微弱信号 2-4 分"；② Prompt 缺少当前日期，模型无法准确判断时效性；③ 金标准样本不足且不均衡。</p>
+  </div>
+
+  <div class="phase-block done">
+    <div class="phase-title">第二轮：金标准校准 + 样本扩充</div>
+    <div class="phase-duration">Day 2-3</div>
+    <p>扩充金标准到 40 条（6 场景全覆盖），逐条校准标注值与 Prompt 定义对齐。商机强度统一按 4 级标准重新标注：直接项目 8-10、间接机会 5-7、微弱信号 2-4、不相关 0-1。</p>
+    <p><strong>结果</strong>：商机强度 MAE = 1.35——反而更差了。原因：扩充的中段样本（边界模糊案例）暴露了更多打分偏差，这些是最难标注的灰色地带。</p>
+  </div>
+
+  <div class="phase-block done">
+    <div class="phase-title">第三轮：Prompt 修复 + 最终达标</div>
+    <div class="phase-duration">Day 4-5</div>
+    <p>三项关键修复：① Prompt 注入 <code>{today}</code> 变量，模型以当前日期为基准计算时效性；② 细化商机强度定义，明确 SaaS 获牌/政策/RFI/试点 ≤ 4 分；③ 评测脚本传入当前日期参数。</p>
+    <p><strong>最终结果</strong>：</p>
+    <div class="grid-4">
+      <div class="metric"><div class="num">0.30</div><div class="label">泰国相关度 MAE ↓</div></div>
+      <div class="metric"><div class="num">0.97</div><div class="label">商机强度 MAE ✓</div></div>
+      <div class="metric"><div class="num">1.00</div><div class="label">时效性分桶准确率 ✓</div></div>
+      <div class="metric"><div class="num">0.97</div><div class="label">板块准确率 ✓</div></div>
+    </div>
+    <p>四维指标全部达标，评测通过。</p>
+  </div>
+
+  <div class="callout success">
+    <strong>核心经验</strong>：金标准标注值与 Prompt 评分定义必须严格同步。Prompt 说"SaaS 获牌 = 微弱信号 2-4 分"，金标准就不能标 5-6 分。这是评测系统可信的前提——否则你在测量的不是模型准确性，而是金标准和 Prompt 之间的矛盾。
+  </div>
+
+  <h4>CI/CD 评测门禁接入</h4>
+  <p>打分评测独立于摘要评测，有单独的 GitHub Actions 工作流 <code>eval-gate.yml</code>：</p>
+  <ul>
+    <li><strong>触发条件</strong>：PR 修改了 <code>app/scoring.py</code>、<code>eval/scoring_goldens.jsonl</code> 或 <code>eval/prompts/scoring.txt</code> 中任一文件</li>
+    <li><strong>超时设置</strong>：60 分钟（40 条金标准 × LLM 调用，首次 30 分钟超时后调大）</li>
+    <li><strong>门禁策略</strong>：五维指标全部达标才允许合并，任一不通过则阻止 PR</li>
+    <li><strong>产物归档</strong>：评测报告 JSON + 历史 diff 自动上传为 CI Artifact</li>
+  </ul>
+
+  <pre><code># .github/workflows/eval-gate.yml 核心配置
+name: Scoring Eval Gate
+on:
+  pull_request:
+    paths:
+      - 'app/scoring.py'
+      - 'eval/scoring_goldens.jsonl'
+      - 'eval/prompts/scoring.txt'
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # 40条金标准需要足够时间
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Scoring Eval
+        run: python eval/scoring_eval.py --ci --gate all_must_pass</code></pre>
+
+  <div class="callout warning">
+    <strong>待改进项</strong>：① 二级菜单准确率尚未纳入评测（目前仅测一级板块）；② 商机强度 MAE = 0.97 接近阈值 1.0，余量不足，建议扩充样本提升统计置信度；③ 待引入 Spearman 秩相关系数衡量打分排序一致性，补充 MAE 对个例偏差不敏感的问题。
+  </div>
 </section>
 
 <!-- 7. 关键决策记录 -->
@@ -1645,6 +1793,35 @@ flowchart LR
       <li>评测体系的可信度是工程化的基石，值得投入</li>
     </ul>
   </div>
+
+  <div class="decision">
+    <div class="decision-title">
+      <span>决策 07：打分评测 — MAE + 分桶准确率 vs LLM-as-Judge</span>
+      <span class="status">已采纳</span>
+    </div>
+    <div class="decision-meta">阶段：Construction · 决策人：AI 工程师 + 产品负责人</div>
+
+    <h5>背景</h5>
+    <p>打分模型输出的是三维数值（泰国相关度/商机强度/时效性，0-10 分），而非文本摘要。摘要评测用的 LLM-as-Judge 方法无法直接判断"模型给的 8 分和人工标注的 7 分差了 1 分"是否合理。</p>
+
+    <h5>选项</h5>
+    <ul>
+      <li>A：LLM-as-Judge 对比打分结果 — 让强模型评判模型打分是否合理，但模型本身也难以精确判断分数差异</li>
+      <li>B：MAE（平均绝对误差）+ 分桶准确率 — 用数学指标直接测量数值偏差，分桶处理降低精确度要求</li>
+      <li>C：精确匹配率 — 要求模型分数完全等于标注值，过于严格，不切实际</li>
+    </ul>
+
+    <h5>决策</h5>
+    <p>选择 B 方案。泰国相关度和商机强度用 MAE（阈值 ≤ 1.0），时效性用分桶准确率（高/中/低三桶 + ±1 边界容差，阈值 ≥ 0.80），板块用精确匹配率（阈值 ≥ 0.85），格式用结构校验（阈值 1.0）。</p>
+
+    <h5>原因</h5>
+    <ul>
+      <li>MAE 是回归任务的标准指标，直接反映"平均偏差多少分"，业务可解释</li>
+      <li>时效性 0-10 精确度对业务无意义，分桶更贴近"新/较新/旧"的实际判断</li>
+      <li>分桶容差解决了边界值（如 7 分和 8 分）的虚假精度问题</li>
+      <li>纯数学指标无 LM 评分波动，评测结果稳定可复现</li>
+    </ul>
+  </div>
 </section>
 
 <!-- 8. 典型问题与解决方案 -->
@@ -1711,6 +1888,23 @@ flowchart LR
     <p><strong>现象</strong>：调用 OpenRouter API 返回 403 错误</p>
     <p><strong>根因</strong>：OpenRouter 要求请求必须带 HTTP-Referer 和 X-Title 头，用于统计和展示</p>
     <p><strong>方案</strong>：检测到 OpenRouter 域名时自动添加额外 header。在 <code>app/llm.py</code> 的 <code>EXTRA_HEADERS</code> 中配置</p>
+  </div>
+
+  <div class="card danger">
+    <h4>问题 9：打分模型时效性评分偏差极大</h4>
+    <p><strong>现象</strong>：时效性分桶准确率仅 55%，大量样本被分到错误的时间桶</p>
+    <p><strong>根因</strong>：Prompt 中没有注入当前日期，模型不知道"今天是几号"，无法计算文章发布距今多久，只能猜测时效性</p>
+    <p><strong>方案</strong>：在 Prompt 模板中加入 <code>当前日期: {today}</code> 变量，运行时由 <code>app/scoring.py</code> 注入 <code>datetime.now().strftime("%Y-%m-%d")</code>，评测脚本同步传入参考日期</p>
+    <p><strong>效果</strong>：时效性分桶准确率从 55% 提升到 100%</p>
+  </div>
+
+  <div class="card warning">
+    <h4>问题 10：金标准标注与 Prompt 定义矛盾</h4>
+    <p><strong>现象</strong>：商机强度 MAE = 1.35（第二轮反而比第一轮 1.07 更差），扩充样本后评测分数下降</p>
+    <p><strong>根因</strong>：金标准标注的商机强度与 Prompt 中的分级定义不一致——Prompt 定义"SaaS 获牌 = 微弱信号 2-4 分"，但金标准标了 5-6 分。评测在测量金标准和 Prompt 的矛盾，而非模型准确性</p>
+    <p><strong>方案</strong>：逐条校准 40 条金标准，统一按 Prompt 的 4 级标准重新标注（直接项目 8-10/间接机会 5-7/微弱信号 2-4/不相关 0-1），确保标注值与评分定义严格同步</p>
+    <p><strong>效果</strong>：商机强度 MAE 从 1.35 降到 0.97，通过 ≤ 1.0 阈值</p>
+    <p><strong>教训</strong>：金标准和 Prompt 是评测系统的两个锚点，必须同步校准，否则评测结果不可信</p>
   </div>
 </section>
 
@@ -1829,7 +2023,7 @@ flowchart LR
     </div>
     <div class="card success">
       <h4>够用就好</h4>
-      <p>不要追求"最佳实践"里的全套工具。3 人团队不需要 K8s，不需要微服务，不需要数据仓库。简单的工具反而跑得更快。</p>
+      <p>不要追求"最佳实践"里的全套工具。7 人团队不需要 K8s，不需要微服务，不需要数据仓库。简单的工具反而跑得更快。</p>
     </div>
   </div>
 </section>
@@ -1838,7 +2032,7 @@ flowchart LR
 <section id="lessons">
   <h2>十、经验总结与最佳实践</h2>
 
-  <p>回顾整个项目过程，有 10 条经验值得沉淀为团队的最佳实践。这些经验不仅适用于本项目，也适用于大多数 AI 产品的工程化落地。</p>
+  <p>回顾整个项目过程，有 11 条经验值得沉淀为团队的最佳实践。这些经验不仅适用于本项目，也适用于大多数 AI 产品的工程化落地。</p>
 
   <h3>10.1 工程化先行，而非事后补</h3>
   <p>很多团队的 AI 项目先做功能，等上线了才想起来质量保障。这是典型的反模式——没有评测体系，你根本不知道改 Prompt 是变好还是变差了。<mark class="key">第一天就把评测框架搭起来</mark>，后续所有迭代都基于数据决策。</p>
@@ -1870,6 +2064,9 @@ flowchart LR
   <h3>10.10 记录决策过程，不要只记结论</h3>
   <p>项目中做了很多决策。只记录结论是不够的——后来的人不知道为什么这么选，遇到类似问题可能会踩同样的坑。记录决策的背景、选项、原因，让团队知识得以沉淀。</p>
 
+  <h3>10.11 打分模型评测要用数学指标，不能用 LLM-as-Judge</h3>
+  <p>摘要评测可以用 LLM-as-Judge 判断"好不好"，但打分模型输出的是数值，需要判断"准不准"。<mark class="key">MAE（平均绝对误差）是回归任务的标准指标</mark>，直接反映模型打分与人工标注的偏差。时效性等模糊维度用分桶准确率代替精确值——7 分和 8 分在业务上没区别，用高/中/低三桶 + ±1 容差更合理。金标准标注值必须与 Prompt 中的评分定义严格同步，否则你测量的不是模型准确性，而是金标准和 Prompt 之间的矛盾。</p>
+
   <div class="callout success" style="margin-top:2rem">
     <strong>一句话总结</strong>：AI 工程化的核心不是用了多少工具，而是建立一套"用数据说话、用评测保障质量、用飞轮持续优化"的工作方式。工具可以换，方法论才是核心。
   </div>
@@ -1884,27 +2081,32 @@ flowchart LR
 │   ├── main.py              # FastAPI 入口 + 定时任务 + 飞书长连接启动
 │   ├── llm.py               # LLM 封装（自动降级 + 重试 + 6层JSON提取 + 字段归一化）
 │   ├── intelligence.py      # 情报采集（RSS + 网页抓取 + 正文提取）
+│   ├── scoring.py           # 独立打分模型（三维打分 + 分类，与摘要模型分离）
 │   ├── profile.py           # 客户画像（多源信息抓取 + LLM 整合生成）
 │   ├── feishu.py            # 飞书 API 封装 + 卡片消息生成
 │   ├── feishu_ws.py         # 飞书长连接客户端（事件循环隔离）
 │   └── prompts.py           # Prompt 模板集中管理
 ├── eval/
 │   ├── run_eval.py          # 情报摘要评测框架（格式/真实性/综合质量）
+│   ├── scoring_eval.py     # 打分评测框架（MAE + 分桶准确率 + 板块准确率）
 │   ├── profile_eval.py      # 客户画像评测框架
 │   ├── goldens.jsonl        # 情报评测集（13 条真实数据）
+│   ├── scoring_goldens.jsonl # 打分评测集（40 条，6 类场景）
 │   ├── profile_goldens.jsonl # 画像评测集（8 家公司）
-│   ├── prompts/             # 评测 Prompt 模板
+│   ├── prompts/
+│   │   └── scoring.txt     # 打分 Prompt 模板（单一真相，含 {today} 变量）
 │   └── .evals/              # 评测结果 + 基线 + 历史记录
 ├── scripts/
 │   ├── eval_pipeline.py     # 评测流水线（评测 + 对比 + 基线更新）
 │   ├── add_golden.py        # 添加评测用例工具
 │   └── daily_report.py      # 每日情报日报生成
 ├── .github/workflows/
-│   ├── eval-gate.yml        # PR 评测门禁
+│   ├── eval-gate.yml        # 打分评测门禁（PR 触发，60 分钟超时）
 │   ├── daily-intelligence.yml # 每日情报推送
 │   └── monitor.yml          # 健康监控（每 6 小时）
 ├── docs/
 │   ├── ai-engineering-playbook/  # 本手册（AI 工程化落地实践）
+│   ├── scoring-eval-retrospective/ # 打分评测复盘报告
 │   ├── proposal.html        # 整体方案文档
 │   ├── cicd_plan.html       # CI/CD 方案设计
 │   ├── evolution_guide.html # 数据飞轮运营指南
@@ -1921,7 +2123,7 @@ flowchart LR
 <footer>
   <div class="container">
     <p>本文档基于「市场情报与获客平台」项目的真实实施过程整理。所有实践均经过生产验证。</p>
-    <p style="margin-top:0.5rem">文档版本：v1.0 · 更新日期：2026 年 9 月</p>
+    <p style="margin-top:0.5rem">文档版本：v1.1 · 更新日期：2026 年 9 月 6 日 · 新增打分评测系统实战（6.7）</p>
   </div>
 </footer>
 
