@@ -5,26 +5,28 @@
 对比人工预标：三维分 MAE + 板块/二级菜单分类准确率 + 标签命中。
 
 判定门槛（任一不过即 exit 1，阻断合并）：
-- 每个维度 MAE ≤ 1.0（0-10 制）
+- 泰国相关度 MAE ≤ 1.0
+- 商机强度 MAE ≤ 1.0
+- 时效性 窗口分桶准确率 ≥ 0.80
 - 板块(section) 准确率 ≥ 0.85
-用法: python eval/scoring_eval.py [--limit N]
+用法: python eval/scoring_eval.py [--limit N] [--today YYYY-MM-DD]
 """
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.llm import chat_json
-from app.scoring import SCORE_SYSTEM_PROMPT, SCORING_MODEL
+from app.scoring import SCORING_MODEL
 
 DIMS = ["thailand_relevance", "opportunity_strength", "timeliness"]
 # 维度级门槛: 相关度/商机是可核事实性判断, 用 MAE ≤1.0;
 # 时效性是主观连续量(预标与评审天然漂移 ±2), 用窗口分桶准确率:
-#   高窗口(8-10)/近期(4-7)/背景(1-3) 三桶, 同桶即命中, 门槛 ≥0.85; MAE 仅作参考打印
+#   高窗口(8-10)/近期(4-7)/背景(1-3) 三桶, 同桶即命中, 门槛 ≥0.80; MAE 仅作参考打印
 MAE_THRESHOLDS = {"thailand_relevance": 1.0, "opportunity_strength": 1.0}
-# N=20 样本下允许 4 条(0.20)≥2分的真实分歧; ±1 边界抖动已由 _ti_hit 容差吸收
 TIMELINESS_BUCKET_ACC_THRESHOLD = 0.80
 SECTION_ACC_THRESHOLD = 0.85
 
@@ -55,7 +57,19 @@ def load_goldens(path: str):
         return [json.loads(line) for line in f if line.strip()]
 
 
-def run_one(g: dict) -> dict:
+def load_score_prompt(today_str: str) -> str:
+    """加载打分 system prompt，注入当前日期"""
+    prompt_file = Path(__file__).parent / "prompts" / "scoring.txt"
+    if prompt_file.exists():
+        tpl = prompt_file.read_text(encoding="utf-8")
+    else:
+        # fallback: 从 app.scoring 导入兜底
+        from app.scoring import _FALLBACK_PROMPT
+        tpl = _FALLBACK_PROMPT
+    return tpl.replace("{today}", today_str)
+
+
+def run_one(g: dict, system_prompt: str) -> dict:
     user_prompt = (
         f"标题: {g['input']['title']}\n"
         f"来源: {g['input'].get('source', '')} 发布: {g['input'].get('published') or '未知'}\n"
@@ -63,7 +77,7 @@ def run_one(g: dict) -> dict:
     )
     result = chat_json(
         user_prompt,
-        system_prompt=SCORE_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         model=SCORING_MODEL,
         temperature=0,
         max_tokens=300,
@@ -73,20 +87,25 @@ def run_one(g: dict) -> dict:
             return max(0, min(10, int(v)))
         except (TypeError, ValueError):
             return None
-    return {
-        d: clamp(result.get(d)) for d in DIMS
-    } | {"section": result.get("section"), "tags": result.get("tags", [])}
+    return (
+        {d: clamp(result.get(d)) for d in DIMS}
+        | {"section": result.get("section"), "tags": result.get("tags", [])}
+    )
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=0, help="只跑前 N 条（调试用）")
+    parser.add_argument("--today", type=str, default="", help="当前日期 YYYY-MM-DD，默认今天")
     args = parser.parse_args()
+
+    today_str = args.today or datetime.now().strftime("%Y-%m-%d")
+    system_prompt = load_score_prompt(today_str)
 
     goldens = load_goldens(str(Path(__file__).parent / "scoring_goldens.jsonl"))
     if args.limit:
         goldens = goldens[: args.limit]
-    print(f"[ScoringEval] {len(goldens)} 条金标准, 模型: {SCORING_MODEL}")
+    print(f"[ScoringEval] {len(goldens)} 条金标准, 模型: {SCORING_MODEL}, 今天: {today_str}")
 
     errors = {d: [] for d in DIMS}
     ti_bucket_ok = 0
@@ -97,7 +116,7 @@ def main():
     failures = []
 
     for i, g in enumerate(goldens, 1):
-        got = run_one(g)
+        got = run_one(g, system_prompt)
         exp = g["expected"]
         if all(got.get(d) is not None for d in DIMS):
             for d in DIMS:
@@ -134,7 +153,10 @@ def main():
             flag = "✓" if mae[d] <= MAE_THRESHOLDS[d] else "✗"
             print(f"  {flag} {d} MAE = {mae[d]:.2f}  (门槛 ≤{MAE_THRESHOLDS[d]})")
     tflag = "✓" if ti_bucket_acc >= TIMELINESS_BUCKET_ACC_THRESHOLD else "✗"
-    print(f"  {tflag} timeliness 窗口分桶准确率 = {ti_bucket_acc:.2f}  (门槛 ≥{TIMELINESS_BUCKET_ACC_THRESHOLD}, MAE参考={mae['timeliness']:.2f})")
+    print(
+        f"  {tflag} timeliness 窗口分桶准确率 = {ti_bucket_acc:.2f}  "
+        f"(门槛 ≥{TIMELINESS_BUCKET_ACC_THRESHOLD}, MAE参考={mae['timeliness']:.2f})"
+    )
     sflag = "✓" if section_acc >= SECTION_ACC_THRESHOLD else "✗"
     print(f"  {sflag} 板块准确率 = {section_acc:.2f}  (门槛 ≥{SECTION_ACC_THRESHOLD})")
     print(f"  ℹ 标签命中率 = {tag_acc:.2f} (参考项, 不设门槛)")
