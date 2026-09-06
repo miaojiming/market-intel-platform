@@ -58,10 +58,10 @@ def collect(hours: int) -> list:
             "language": language,
         })
 
-    # 1) Google News RSS 检索式 ×11
+    # 1) Google News RSS 检索式 ×19
     for query in GOOGLE_NEWS_QUERIES:
         try:
-            feed = feedparser.parse(google_news_feed_url(query, when="2d"))
+            feed = feedparser.parse(google_news_feed_url(query, when="7d"))
             count = 0
             for entry in feed.entries:
                 if count >= PER_CHANNEL_MAX:
@@ -115,7 +115,7 @@ def _iso(entry) -> str:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--hours", type=int, default=26)
+    parser.add_argument("--hours", type=int, default=72)
     parser.add_argument("--dry-run", action="store_true", help="不写表不推送")
     parser.add_argument("--no-push", action="store_true", help="写表但不推送")
     args = parser.parse_args()

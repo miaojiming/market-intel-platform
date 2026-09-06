@@ -1,7 +1,7 @@
 """
 泰国市场情报采集渠道配置
 来源：飞书《渠道验证清单》2026-09-03 实测结论，仅纳入 ✅可爬 渠道（ADR 0001）
-- Google News RSS 检索式 × 11 组（主力渠道，查询式从存量数据复原）
+- Google News RSS 检索式 × 19 组（主力渠道，覆盖收单/招标/监管/数字银行等多个角度）
 - 固定源 RSS × 5 个（含本地关键词过滤）
 e-GP 政府采购 API 待密钥获批后接入（渠道清单 🔑 待办）
 """
@@ -20,6 +20,15 @@ GOOGLE_NEWS_QUERIES = [
     "Thailand PDPA enforcement fine data protection",
     "Thailand bank tender OR procurement IT system contract award",
     "Thailand bank replaces OR migrates legacy payment platform",
+    # 以下为扩充查询（覆盖收单/招标/数字银行/CBDC/电子采购等更多角度）
+    "Thailand merchant acquiring OR payment gateway bank",
+    'Thailand "e-GP" OR "e-procurement" OR government IT system bidding',
+    "Thailand CBDC OR retail digital currency central bank pilot",
+    "Thailand digital bank OR neobank OR virtual bank license",
+    "Thailand e-KYC OR digital identity verification bank payment",
+    "Thailand e-commerce payment COD OR installment buy now pay later",
+    "Thailand bank cybersecurity OR data breach OR ransomware finance",
+    "Thailand BNPL OR buy now pay later OR consumer credit payment",
 ]
 
 GOOGLE_NEWS_CHANNEL = "Google News RSS"
