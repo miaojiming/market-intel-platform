@@ -48,6 +48,8 @@ jobs:
         run: |
           mkdir -p dashboard/docs
           cp -r docs/* dashboard/docs/
+          # 禁用 Jekyll，确保 _ 开头的目录（如 _shared）不被忽略
+          touch dashboard/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
