@@ -32,9 +32,11 @@ from app import bitable
 DAILY_MAX = int(os.getenv("PIPELINE_DAILY_MAX", "40"))
 # 每渠道条数上限（控制单组查询占比，避免被宽查询淹没）
 PER_CHANNEL_MAX = 5
-# 推送阈值与上限（共识：权重分≥6 且 TOP10/日）
-PUSH_THRESHOLD = 6.0
-PUSH_TOP_N = 10
+# 推送阈值与上限（方案B：阈值降至5.0 + 兜底逻辑，保证每日有推送）
+PUSH_THRESHOLD = 5.0          # 主推送阈值：权重分 ≥5.0 的进入推送候选
+PUSH_TOP_N = 10               # 正常推送上限（TOP10/日）
+FALLBACK_TOP_N = 5            # 兜底推送上限（无达标时取 TOP5）
+FALLBACK_MIN_RELEVANCE = 5    # 兜底最低泰国相关度（至少沾边泰国才推，防止纯噪音）
 
 
 def collect(hours: int) -> list:
@@ -140,6 +142,7 @@ def main():
 
     # 3. 逐条: 正文 → 摘要(opus) → 独立打分(gpt-5.6-sol) → 写入
     pushed_candidates = []
+    scored_items = []        # 所有打分成功的条目（兜底用）
     written = 0
     for i, item in enumerate(fresh, 1):
         print(f"  [{i}/{len(fresh)}] {item['title'][:50]}…")
@@ -169,11 +172,25 @@ def main():
                 continue
         if weight >= PUSH_THRESHOLD:
             pushed_candidates.append(item)
+        scored_items.append(item)
         time.sleep(0.3)
 
-    # 4. 推送（权重分≥6，TOP10）+ 状态流转（已推送）
+    # 4. 推送 + 状态流转（已推送）
+    #    策略：权重分≥5.0 的 TOP10 优先推送；若全部不达标，取泰国相关度≥5 的 TOP5 兜底
     pushed_candidates.sort(key=lambda x: x["weight_score"], reverse=True)
     top = pushed_candidates[:PUSH_TOP_N]
+    fallback_used = False
+
+    # 兜底逻辑：无达标情报时，取泰国相关度≥5 的 TOP5
+    if not top and scored_items:
+        fallback_pool = [
+            it for it in scored_items
+            if it.get("thailand_relevance", 0) >= FALLBACK_MIN_RELEVANCE
+        ]
+        fallback_pool.sort(key=lambda x: x["weight_score"], reverse=True)
+        top = fallback_pool[:FALLBACK_TOP_N]
+        fallback_used = True
+
     for t in top:
         t["importance"] = max(1, min(5, round(t["weight_score"] / 2)))
         t["source_url"] = t["link"]
@@ -181,11 +198,14 @@ def main():
     if not args.dry_run and not args.no_push and top:
         from app.feishu import send_intelligence_card
         ok = send_intelligence_card(top)
-        print(f"[Pipeline] 推送 {'成功' if ok else '失败'}: {len(top)} 条（≥{PUSH_THRESHOLD} 分）")
+        mode = "兜底" if fallback_used else f"≥{PUSH_THRESHOLD}分"
+        print(f"[Pipeline] 推送 {'成功' if ok else '失败'}: {len(top)} 条（{mode}）")
         if ok:
             rids = [t["record_id"] for t in top if t.get("record_id")]
             marked = bitable.mark_pushed(rids)
             print(f"[Pipeline] 状态流转: {marked}/{len(rids)} 条标记已推送")
+    elif not top:
+        print("[Pipeline] 无符合推送条件的情报（连兜底都不达标的纯噪音）")
 
     # 5. 本地留档（与 daily_report 输出保持同目录）
     out = Path("output")
