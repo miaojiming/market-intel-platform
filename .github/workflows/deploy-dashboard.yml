@@ -1,0 +1,57 @@
+name: Deploy Dashboard to GitHub Pages
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每天北京时间 8:30 导出并部署（在每日情报之后）
+    - cron: '30 0 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install requests --quiet
+
+      - name: Export dashboard data
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          BITABLE_APP_TOKEN: IjRjbhMNZaCR3YsvenrcIyk2nXg
+          BITABLE_TABLE_ID: tblHfzfRCBqjAfVD
+        run: python scripts/export_dashboard_data.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
