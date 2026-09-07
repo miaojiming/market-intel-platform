@@ -31,13 +31,12 @@ def fetch_all_records() -> list:
         params = {"page_size": 500}
         if page_token:
             params["page_token"] = page_token
-        resp = requests.get(
+        url = (
             f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
-            f"/tables/{BITABLE_TABLE_ID}/records",
-            headers=headers,
-            params=params,
-            timeout=20,
+            f"/tables/{BITABLE_TABLE_ID}/records"
         )
+        print(f"请求URL: {url}")
+        resp = requests.get(url, headers=headers, params=params, timeout=20)
         try:
             body = resp.json()
         except Exception as e:
