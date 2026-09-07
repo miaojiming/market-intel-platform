@@ -1,6 +1,13 @@
-name: Deploy Dashboard to GitHub Pages
+name: Deploy Site to GitHub Pages
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'dashboard/**'
+      - 'docs/**'
+      - 'scripts/export_dashboard_data.py'
+      - '.github/workflows/deploy-dashboard.yml'
   workflow_dispatch:
   schedule:
     # 每天北京时间 8:30 导出并部署（在每日情报之后）
@@ -36,6 +43,11 @@ jobs:
           BITABLE_APP_TOKEN: IjRjbhMNZaCR3YsvenrcIyk2nXg
           BITABLE_TABLE_ID: tblHfzfRCBqjAfVD
         run: python scripts/export_dashboard_data.py
+
+      - name: Copy docs to site
+        run: |
+          mkdir -p dashboard/docs
+          cp -r docs/* dashboard/docs/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
