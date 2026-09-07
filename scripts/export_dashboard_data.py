@@ -38,7 +38,11 @@ def fetch_all_records() -> list:
             params=params,
             timeout=20,
         )
-        body = resp.json()
+        try:
+            body = resp.json()
+        except Exception as e:
+            print(f"API 返回非JSON: status={resp.status_code}, body前200字={resp.text[:200]}")
+            raise
         if body.get("code") != 0:
             raise RuntimeError(f"读取多维表格失败 code={body.get('code')}: {body.get('msg')}")
         data = body.get("data", {})
