@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="tokyo-night">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-content-type" content="presentation" />
+<meta name="x-presentation-version" content="1.0" />
+<meta name="x-presentation-indicator" content="deck-stage .slide" />
+<title>泰国支付市场情报平台 · Hackathon 总结汇报</title>
+<link rel="stylesheet" href="./_shared/fonts.css">
+<link rel="stylesheet" href="./_shared/base.css">
+<link id="theme-link" rel="stylesheet" href="./_shared/themes/tokyo-night.css">
+<link rel="stylesheet" href="./_shared/animations/animations.css">
+<link rel="stylesheet" href="./_shared/decorations.css">
+<script src="./_shared/echarts.min.js"></script>
+<script src="./_shared/echarts-theme-sync.js"></script>
+<style>
+.cover-bg{position:absolute;inset:0;overflow:hidden}
+.cover-bg .placeholder{width:100%;height:100%;background:
+  radial-gradient(80% 60% at 30% 40%,rgba(122,162,247,.25),transparent 70%),
+  radial-gradient(70% 50% at 75% 60%,rgba(187,154,247,.2),transparent 70%),
+  linear-gradient(135deg,#1a1b26,#16161e)}
+.cover-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,.5) 100%)}
+.cover-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;padding:56px 72px}
+.cover-content .h1{color:#fff;font-size:60px;font-weight:900;line-height:1.1;letter-spacing:-.03em;margin:0}
+.cover-content .lede{color:rgba(255,255,255,.75);font-size:20px;margin:18px 0 0;max-width:60ch}
+.cover-content .pill{background:rgba(255,255,255,.1);color:#c0caf5;border:1px solid rgba(255,255,255,.15)}
+.cover-content .deck-header,.cover-content .deck-footer{color:rgba(255,255,255,.55)}
+.flow{display:flex;align-items:center;gap:12px;margin-top:36px;max-width:1400px}
+.flow .node{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 14px;text-align:center;box-shadow:var(--shadow);position:relative}
+.flow .node .ic{font-size:28px;margin-bottom:4px}
+.flow .node h4{font-size:15px}
+.flow .node p{font-size:11px;color:var(--text-3);margin:0}
+.flow .arr{color:var(--text-3);font-size:24px;flex-shrink:0}
+.flow .node.hl{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent),var(--shadow)}
+.grid.g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid.g4{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.vs{display:grid;grid-template-columns:1fr 80px 1fr;gap:24px;align-items:stretch;margin-top:24px}
+.vs .side{padding:26px}
+.vs .mid{font-size:48px;font-weight:800;color:var(--text-3);display:flex;align-items:center;justify-content:center}
+.vs .bad-side{border-top:3px solid var(--bad)}
+.vs .good-side{border-top:3px solid var(--good)}
+.vs h3{font-size:22px}
+.vs ul{padding-left:18px;font-size:14px;line-height:1.7;color:var(--text-2)}
+.vs li::marker{color:var(--bad)}
+.vs .good-side li::marker{color:var(--good)}
+.tl{position:relative;margin-top:36px}
+.tl::before{content:"";position:absolute;left:0;right:0;top:48px;height:2px;background:var(--border)}
+.tl .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px;align-items:start}
+.tl .item{position:relative;padding-top:80px;text-align:center}
+.tl .dot{position:absolute;top:36px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;background:var(--accent);border:4px solid var(--bg);box-shadow:0 0 0 2px var(--accent)}
+.tl .year{font-size:13px;color:var(--text-3);letter-spacing:.12em;text-transform:uppercase;position:absolute;top:0;left:0;right:0;font-weight:600}
+.tl h4{font-size:17px}
+.tl p{font-size:12px;color:var(--text-2)}
+</style>
+</head>
+<body data-themes="tokyo-night,blueprint,dracula" data-theme-base="./_shared/themes/">
+<deck-stage width="1920" height="1080">
+
+  <!-- 1. Cover -->
+  <section class="slide active deco-grid" data-deck-label="封面" style="padding:0">
+    <div class="cover-bg"><div class="placeholder"></div></div>
+    <div class="cover-scrim"></div>
+    <div class="cover-content">
+      <div class="deck-header"><span class="eyebrow">Hackathon · 2026</span><span class="eyebrow">泰国支付市场情报平台</span></div>
+      <div class="anim-stagger-list" style="margin-top:auto;margin-bottom:auto">
+        <h1 class="h1 anim-fade-up" data-anim="fade-up">
+          泰国支付市场<span class="gradient-text">情报平台</span><br>全链路自动化
+        </h1>
+        <p class="lede">AI 驱动的泰国收单市场情报监控：采集 → 摘要 → 打分 → 入库 → 推送，7 人团队 6 周交付。</p>
+        <div class="row mt-l" style="gap:12px">
+          <span class="pill">收单 SaaS</span>
+          <span class="pill">收单独立部署</span>
+          <span class="pill">LLM 双模型</span>
+          <span class="pill">CI/CD 评测门禁</span>
+        </div>
+      </div>
+      <div class="deck-footer"><span class="dim2">Hackathon Summary · 2026-09-07</span><span class="slide-number" data-current="1" data-total="17"></span></div>
+    </div>
+    <div class="notes">各位好，今天汇报泰国支付市场情报平台的 Hackathon 成果。这个项目聚焦收单 SaaS 和收单独立部署两类业务场景，6 周内由 7 人团队完成了从采集到推送的全链路自动化，并建立了完整的 AI 评测门禁体系。</div>
+  </section>
+
+  <!-- 2. TOC -->
+  <section class="slide" data-deck-label="目录">
+    <p class="eyebrow">Contents · 汇报大纲</p>
+    <h2 class="h2">今天汇报的六件事</h2>
+    <div class="grid g2 mt-l anim-stagger-list" data-anim-target>
+      <div class="card"><div class="row"><div class="h3 dim2" style="width:56px">01</div><div><h4>项目背景与定位</h4><p class="dim">为什么做泰国收单情报监控</p></div></div></div>
+      <div class="card"><div class="row"><div class="h3 dim2" style="width:56px">02</div><div><h4>系统架构</h4><p class="dim">全链路设计与核心技术决策</p></div></div></div>
+      <div class="card"><div class="row"><div class="h3 dim2" style="width:56px">03</div><div><h4>评测体系建设</h4><p class="dim">5 维指标 + 40 条金标准 + 三轮迭代</p></div></div></div>
+      <div class="card"><div class="row"><div class="h3 dim2" style="width:56px">04</div><div><h4>工程化实践</h4><p class="dim">CI/CD 门禁 + Prompt 单一真相 + 数据飞轮</p></div></div></div>
+      <div class="card" style="grid-column:span 2"><div class="row"><div class="h3 dim2" style="width:56px">05</div><div><h4>采集优化与成果数据</h4><p class="dim">查询词迭代、噪音过滤、项目关键数字</p></div></div></div>
+      <div class="card" style="grid-column:span 2"><div class="row"><div class="h3 dim2" style="width:56px">06</div><div><h4>下一步规划</h4><p class="dim">v2 渠道扩展、e-GP API、知识图谱</p></div></div></div>
+    </div>
+    <div class="deck-footer"><span class="dim2">泰国支付市场情报平台</span><span>目录</span></div>
+    <div class="notes">今天分六个部分汇报：项目背景、系统架构、评测体系、工程化实践、采集优化与成果、下一步规划。重点在第三和第四部分——评测体系和工程化实践是这个项目的核心价值。</div>
+  </section>
+
+  <!-- 3. Section: 项目背景 -->
+  <section class="slide deco-soft-gradient center tc" data-deck-label="Section 01">
+    <div style="max-width:780px;margin:0 auto">
+      <p class="kicker anim-fade-down" data-anim="fade-down">Section · 01</p>
+      <h1 class="h1 anim-rise-in" data-anim="rise-in" style="font-size:100px">项目<span class="gradient-text">背景</span></h1>
+      <div class="divider-accent" style="margin:24px auto"></div>
+      <p class="lede" style="margin:0 auto">为什么选择泰国收单市场？业务聚焦点是什么？</p>
+    </div>
+    <div class="notes">先讲项目背景——为什么做这个项目，聚焦什么业务。</div>
+  </section>
+
+  <!-- 4. 业务定位 -->
+  <section class="slide" data-deck-label="业务定位">
+    <p class="kicker">Focus · 业务聚焦</p>
+    <h2 class="h2">泰国收单市场的两类商机</h2>
+    <div class="grid g2 mt-l anim-stagger-list" data-anim-target>
+      <div class="card">
+        <div style="font-size:36px">🏦</div>
+        <h4 class="mt-s">收单 SaaS</h4>
+        <p class="dim">国际收单服务商以 SaaS 模式为泰国商户提供收单服务</p>
+        <ul class="dim mt-s" style="font-size:14px;line-height:1.8;padding-left:16px">
+          <li>Adyen / Opn(Omise) / 2C2P / Worldpay</li>
+          <li>监控重点：获牌、收购、产品发布</li>
+          <li>商机等级：微弱信号（2-4 分）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-size:36px">🏗️</div>
+        <h4 class="mt-s">收单独立部署</h4>
+        <p class="dim">泰国银行或收单机构自建或采购收单系统</p>
+        <ul class="dim mt-s" style="font-size:14px;line-height:1.8;padding-left:16px">
+          <li>SCB / KTB / BBL / KBank</li>
+          <li>监控重点：招标、系统更换、合约到期</li>
+          <li>商机等级：直接项目（8-10 分）</li>
+        </ul>
+      </div>
+    </div>
+    <p class="dim mt-l" style="font-size:13px">所有打分维度、金标准、评测指标均围绕此聚焦点设计</p>
+    <div class="deck-footer"><span class="dim2">项目背景</span><span>业务定位</span></div>
+    <div class="notes">项目聚焦两类业务：收单 SaaS 是国际厂商以 SaaS 模式在泰国做收单，商机偏弱，因为系统集成多由厂商自己完成；收单独立部署是泰国银行自建或采购收单系统，这是直接的项目机会，商机强度最高。所有打分、金标准、评测都围绕这两个聚焦点设计。</div>
+  </section>
+
+  <!-- 5. Section: 系统架构 -->
+  <section class="slide deco-soft-gradient center tc" data-deck-label="Section 02">
+    <div style="max-width:780px;margin:0 auto">
+      <p class="kicker anim-fade-down" data-anim="fade-down">Section · 02</p>
+      <h1 class="h1 anim-rise-in" data-anim="rise-in" style="font-size:100px">系统<span class="gradient-text">架构</span></h1>
+      <div class="divider-accent" style="margin:24px auto"></div>
+      <p class="lede" style="margin:0 auto">从采集到推送，6 步全链路自动化</p>
+    </div>
+    <div class="notes">接下来讲系统架构——全链路怎么跑的。</div>
+  </section>
+
+  <!-- 6. 全链路架构 -->
+  <section class="slide" data-deck-label="全链路架构">
+    <p class="kicker">Pipeline · 全链路</p>
+    <h2 class="h2">每日 08:00 自动运行，6 步完成</h2>
+    <div class="flow anim-stagger-list" data-anim-target style="flex-wrap:wrap;justify-content:center">
+      <div class="node"><div class="ic">📡</div><h4>采集</h4><p>20 组 Google News<br>+ 4 固定 RSS 源</p></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="ic">📝</div><h4>摘要</h4><p>claude-opus-5<br>中文摘要 + 翻译</p></div>
+      <div class="arr">→</div>
+      <div class="node hl"><div class="ic">📊</div><h4>打分</h4><p>gpt-5.6-sol 独立<br>三维 0-10 + 分类</p></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="ic">📋</div><h4>入库</h4><p>飞书多维表格<br>链接去重</p></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="ic">🔔</div><h4>推送</h4><p>权重分 ≥6<br>TOP 10 推群</p></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="ic">🤖</div><h4>查询</h4><p>对话机器人<br>/today /intel</p></div>
+    </div>
+    <div class="grid g3 mt-l" style="gap:16px">
+      <div class="card" style="padding:16px"><p class="eyebrow">权重分公式</p><p class="mt-s" style="font-size:15px;font-family:monospace;color:var(--accent)">0.4 × 相关度 + 0.4 × 商机 + 0.2 × 时效</p></div>
+      <div class="card" style="padding:16px"><p class="eyebrow">调度方式</p><p class="mt-s" style="font-size:14px">GitHub Actions cron<br>免运维，密钥在 repo secrets</p></div>
+      <div class="card" style="padding:16px"><p class="eyebrow">部署形态</p><p class="mt-s" style="font-size:14px">管道 = GH Actions<br>机器人 = AWS EC2 Docker</p></div>
+    </div>
+    <div class="deck-footer"><span class="dim2">系统架构</span><span>全链路</span></div>
+    <div class="notes">这是全链路架构。每天早上 8 点 GitHub Actions 自动触发：20 组 Google News 查询采集新闻，claude-opus-5 做中文摘要，gpt-5.6-sol 独立做三维打分，写入飞书多维表格，权重分 6 分以上的推送到飞书群，用户也可以通过对话机器人按需查询。整个管道免运维，密钥在 repo secrets 里。</div>
+  </section>
+
+  <!-- 7. 核心技术决策 -->
+  <section class="slide" data-deck-label="核心技术决策">
+    <p class="kicker">Decisions · 技术决策</p>
+    <h2 class="h2">三个关键架构决策</h2>
+    <div class="grid g3 mt-l anim-stagger-list" data-anim-target>
+      <div class="card">
+        <div style="font-size:36px">🔀</div>
+        <h4 class="mt-s">摘要与打分模型分离</h4>
+        <p class="dim" style="font-size:14px;line-height:1.6">摘要用 claude-opus-5（中文质量高），打分用 gpt-5.6-sol（数学推理强）。两模型独立调用，避免一个模型既做生成又做评分的波动问题。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:36px">📜</div>
+        <h4 class="mt-s">Prompt 单一真相</h4>
+        <p class="dim" style="font-size:14px;line-height:1.6">打分 Prompt 存在 eval/prompts/scoring.txt，生产代码运行时读取，CI 门禁对其变更做金标准回归。改一处，生产+评测同步生效。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:36px">🗂️</div>
+        <h4 class="mt-s">单一多维表格</h4>
+        <p class="dim" style="font-size:14px;line-height:1.6">所有情报写入一张飞书多维表格（ADR-0001），按原文链接去重。推送状态自动流转，避免多数据源同步问题。</p>
+      </div>
+    </div>
+    <div class="deck-footer"><span class="dim2">系统架构</span><span>技术决策</span></div>
+    <div class="notes">三个关键决策：第一，摘要和打分用不同模型，解决 LLM-as-Judge 评分波动问题；第二，Prompt 存在单一文件里，生产和评测共用，改一处全生效，CI 会对变更做回归测试；第三，所有数据写入一张多维表格，按链接去重，避免多数据源同步。</div>
+  </section>
+
+  <!-- 8. Section: 评测体系 -->
+  <section class="slide deco-soft-gradient center tc" data-deck-label="Section 03">
+    <div style="max-width:780px;margin:0 auto">
+      <p class="kicker anim-fade-down" data-anim="fade-down">Section · 03</p>
+      <h1 class="h1 anim-rise-in" data-anim="rise-in" style="font-size:100px">评测<span class="gradient-text">体系</span></h1>
+      <div class="divider-accent" style="margin:24px auto"></div>
+      <p class="lede" style="margin:0 auto">5 维指标 · 40 条金标准 · 三轮迭代 · CI 门禁阻断</p>
+    </div>
+    <div class="notes">第三部分是评测体系，这是项目最核心的工程价值。</div>
+  </section>
+
+  <!-- 9. 5维评测指标 -->
+  <section class="slide" data-deck-label="评测指标">
+    <p class="kicker">Metrics · 5 维评测指标</p>
+    <h2 class="h2">打分模型评测不用 LLM-as-Judge，用数学指标</h2>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;align-items:center">
+      <div class="card" style="height:460px;padding:20px"><div id="radar" style="width:100%;height:100%"></div></div>
+      <div>
+        <div class="card" style="padding:16px;margin-bottom:12px">
+          <div class="row" style="justify-content:space-between"><h4 style="font-size:16px">泰国相关度 MAE</h4><span style="color:var(--good);font-weight:700">0.35 ✓</span></div>
+          <p class="dim" style="font-size:13px">门槛 ≤ 1.0 · 模型与人工分的平均绝对偏差</p>
+        </div>
+        <div class="card" style="padding:16px;margin-bottom:12px">
+          <div class="row" style="justify-content:space-between"><h4 style="font-size:16px">商机强度 MAE</h4><span style="color:var(--good);font-weight:700">0.85 ✓</span></div>
+          <p class="dim" style="font-size:13px">门槛 ≤ 1.0 · 从 1.07 优化到 0.85</p>
+        </div>
+        <div class="card" style="padding:16px;margin-bottom:12px">
+          <div class="row" style="justify-content:space-between"><h4 style="font-size:16px">时效性分桶准确率</h4><span style="color:var(--good);font-weight:700">1.00 ✓</span></div>
+          <p class="dim" style="font-size:13px">门槛 ≥ 0.80 · ±1 分跨桶计命中</p>
+        </div>
+        <div class="card" style="padding:16px;margin-bottom:12px">
+          <div class="row" style="justify-content:space-between"><h4 style="font-size:16px">板块准确率</h4><span style="color:var(--good);font-weight:700">0.97 ✓</span></div>
+          <p class="dim" style="font-size:13px">门槛 ≥ 0.85 · 2 选 1 分类</p>
+        </div>
+        <div class="card" style="padding:16px">
+          <div class="row" style="justify-content:space-between"><h4 style="font-size:16px">标签命中率</h4><span style="color:var(--accent-2);font-weight:700">0.95 ℹ</span></div>
+          <p class="dim" style="font-size:13px">参考项，不设门槛</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      addEventListener('DOMContentLoaded',()=>{
+        const chart=echarts.init(document.getElementById('radar'),null,{renderer:'svg'});
+        window.__deckECharts.register(chart,function(c){
+          return {
+            color:[c['--accent'],c['--accent-2']],
+            tooltip:{},
+            radar:{indicator:[
+              {name:'相关度MAE\n(≤1.0)',max:1.5},
+              {name:'商机MAE\n(≤1.0)',max:1.5},
+              {name:'时效分桶\n(≥0.8)',max:1.2},
+              {name:'板块准确率\n(≥0.85)',max:1.2},
+              {name:'标签命中率\n(参考)',max:1.2}],
+              axisName:{color:c['--text-2'],fontSize:11},
+              splitArea:{areaStyle:{color:['transparent']}},
+              splitLine:{lineStyle:{color:c['--border']}},
+              axisLine:{lineStyle:{color:c['--border']}}},
+            series:[{type:'radar',data:[
+              {value:[0.35,0.85,1.0,0.97,0.95],name:'当前结果',
+                lineStyle:{width:3},symbolSize:6,areaStyle:{opacity:0.25}}
+            ]}]
+          };
+        });
+        window.addEventListener('resize',()=>chart.resize());
+      });
+    </script>
+    <div class="deck-footer"><span class="dim2">评测体系</span><span>5 维指标</span></div>
+    <div class="notes">打分评测用 5 个数学指标，不用 LLM-as-Judge。因为打分本身就是数值，可以直接用 MAE 和准确率衡量。右侧是当前结果——5 项全部达标。商机强度 MAE 从最初的 1.07 优化到 0.85，是迭代的主要成果。</div>
+  </section>
+
+  <!-- 10. 三轮迭代历程 -->
+  <section class="slide" data-deck-label="三轮迭代">
+    <p class="kicker">Iteration · 三轮迭代</p>
+    <h2 class="h2">从 1.07 到 0.85，商机强度 MAE 的优化历程</h2>
+    <div class="card mt-l" style="height:440px;padding:28px"><div id="bars" style="width:100%;height:100%"></div></div>
+    <div class="grid g3 mt-l" style="gap:16px">
+      <div class="card" style="padding:14px;border-left:3px solid var(--bad)">
+        <p class="eyebrow">第一轮</p>
+        <p class="mt-s" style="font-size:13px">商机 MAE 1.07 超标。原因：金标准与 Prompt 定义不同步，SaaS 获牌/政策新闻被标为高分</p>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--warn)">
+        <p class="eyebrow">第二轮</p>
+        <p class="mt-s" style="font-size:13px">校准 40 条金标准对齐 Prompt 定义，商机 MAE 升至 1.35。原因：模型无法区分已完成项目</p>
+      </div>
+      <div class="card" style="padding:14px;border-left:3px solid var(--good)">
+        <p class="eyebrow">第三轮</p>
+        <p class="mt-s" style="font-size:13px">Prompt 增加项目状态修正 + 政策阶段区分，商机 MAE 降至 0.85，全部达标</p>
+      </div>
+    </div>
+    <script>
+      addEventListener('DOMContentLoaded',()=>{
+        const chart=echarts.init(document.getElementById('bars'),null,{renderer:'svg'});
+        window.__deckECharts.register(chart,function(c){
+          return {
+            color:[c['--accent'],c['--bad'],c['--accent-2'],c['--warn']],
+            tooltip:{trigger:'axis',appendToBody:true},
+            legend:{data:['泰国相关度MAE','商机强度MAE','时效性分桶准确率','板块准确率'],
+              bottom:0,textStyle:{color:c['--text-2'],fontSize:11}},
+            grid:{left:'3%',right:'4%',bottom:'18%',top:'8%',containLabel:true},
+            xAxis:{type:'category',data:['第一轮','第二轮','第三轮'],
+              axisLabel:{color:c['--text-2'],fontSize:13},
+              axisLine:{lineStyle:{color:c['--border']}}},
+            yAxis:[
+              {type:'value',name:'MAE',min:0,max:1.5,
+                axisLabel:{color:c['--text-2']},
+                splitLine:{lineStyle:{color:c['--border']}}},
+              {type:'value',name:'准确率',min:0,max:1.2,
+                axisLabel:{color:c['--text-2']},
+                splitLine:{show:false}}
+            ],
+            series:[
+              {name:'泰国相关度MAE',type:'bar',data:[0.28,0.33,0.35],
+                itemStyle:{color:c['--accent']},barWidth:'15%'},
+              {name:'商机强度MAE',type:'bar',data:[1.07,1.35,0.85],
+                itemStyle:{color:c['--bad']},barWidth:'15%',
+                markLine:{data:[{yAxis:1,type:'line'}],
+                  lineStyle:{color:c['--bad'],type:'dashed'},label:{formatter:'门槛1.0',color:c['--text-3']}}},
+              {name:'时效性分桶准确率',type:'line',yAxisIndex:1,data:[0.55,0.68,1.00],
+                itemStyle:{color:c['--accent-2']},lineStyle:{width:3}},
+              {name:'板块准确率',type:'line',yAxisIndex:1,data:[1.00,1.00,0.97],
+                itemStyle:{color:c['--warn']},lineStyle:{width:3}}
+            ]
+          };
+        });
+        window.addEventListener('resize',()=>chart.resize());
+      });
+    </script>
+    <div class="deck-footer"><span class="dim2">评测体系</span><span>三轮迭代</span></div>
+    <div class="notes">三轮迭代过程：第一轮发现金标准和 Prompt 定义不同步，商机 MAE 超标；第二轮校准金标准后发现模型对已完成项目系统性高估，MAE 反而升高；第三轮在 Prompt 里加入项目状态修正和政策阶段区分，MAE 降到 0.85，全部达标。关键经验：金标准和 Prompt 定义必须同步。</div>
+  </section>
+
+  <!-- 11. Section: 工程化实践 -->
+  <section class="slide deco-soft-gradient center tc" data-deck-label="Section 04">
+    <div style="max-width:780px;margin:0 auto">
+      <p class="kicker anim-fade-down" data-anim="fade-down">Section · 04</p>
+      <h1 class="h1 anim-rise-in" data-anim="rise-in" style="font-size:100px">工程化<span class="gradient-text">实践</span></h1>
+      <div class="divider-accent" style="margin:24px auto"></div>
+      <p class="lede" style="margin:0 auto">CI/CD 门禁 · Prompt 单一真相 · 数据飞轮闭环</p>
+    </div>
+    <div class="notes">第四部分讲工程化实践，是怎么保证质量的。</div>
+  </section>
+
+  <!-- 12. CI/CD 门禁与数据飞轮 -->
+  <section class="slide" data-deck-label="CI/CD门禁">
+    <p class="kicker">CI/CD · 评测门禁</p>
+    <h2 class="h2">PR 改 Prompt/金标准 → 自动跑评测 → 不达标阻断合并</h2>
+    <div class="flow anim-stagger-list" data-anim-target style="margin-top:30px">
+      <div class="node"><div class="ic">🔧</div><h4>PR 提交</h4><p>改 scoring.txt<br>或 goldens.jsonl</p></div>
+      <div class="arr">→</div>
+      <div class="node hl"><div class="ic">🚪</div><h4>eval-gate CI</h4><p>40 条金标准<br>5 维指标</p></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="ic">✅</div><h4>全指标达标</h4><p>允许合并<br>基线自动更新</p></div>
+      <div class="arr" style="color:var(--bad)">✗</div>
+      <div class="node" style="border-color:var(--bad)"><div class="ic">❌</div><h4>任一超标</h4><p>阻断合并<br>报告偏差详情</p></div>
+    </div>
+    <div class="grid g4 mt-l anim-stagger-list" data-anim-target style="gap:16px">
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:800;color:var(--accent)">40</div>
+        <p class="dim" style="font-size:12px">金标准条数</p>
+      </div>
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:800;color:var(--accent-2)">6</div>
+        <p class="dim" style="font-size:12px">场景类型覆盖</p>
+      </div>
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:800;color:var(--good)">5</div>
+        <p class="dim" style="font-size:12px">评测维度</p>
+      </div>
+      <div class="card" style="padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:800;color:var(--warn)">60min</div>
+        <p class="dim" style="font-size:12px">CI 超时上限</p>
+      </div>
+    </div>
+    <p class="dim mt-l" style="font-size:13px">数据飞轮：采集 → 评测 → 对比 → 优化，四阶段闭环，eval_pipeline.py 一键运行</p>
+    <div class="deck-footer"><span class="dim2">工程化实践</span><span>CI/CD 门禁</span></div>
+    <div class="notes">CI/CD 门禁是质量保障的核心。当有人提交 PR 修改打分 Prompt 或金标准时，GitHub Actions 自动跑 40 条金标准评测，5 个维度全部达标才允许合并，任一超标就阻断。这保证了 Prompt 变更不会引入回归。数据飞轮是更大的框架：采集、评测、对比、优化四阶段闭环，一键运行。</div>
+  </section>
+
+  <!-- 13. Section: 成果与规划 -->
+  <section class="slide deco-soft-gradient center tc" data-deck-label="Section 05">
+    <div style="max-width:780px;margin:0 auto">
+      <p class="kicker anim-fade-down" data-anim="fade-down">Section · 05</p>
+      <h1 class="h1 anim-rise-in" data-anim="rise-in" style="font-size:100px">成果与<span class="gradient-text">规划</span></h1>
+      <div class="divider-accent" style="margin:24px auto"></div>
+      <p class="lede" style="margin:0 auto">项目关键数字、采集优化历程与下一步方向</p>
+    </div>
+    <div class="notes">最后讲成果数据和下一步规划。</div>
+  </section>
+
+  <!-- 14. 项目成果数据 -->
+  <section class="slide" data-deck-label="项目成果">
+    <p class="kicker">Results · 项目成果</p>
+    <h2 class="h2">6 周交付，全链路上线</h2>
+    <div class="grid g4 mt-l anim-stagger-list" data-anim-target>
+      <div class="card" style="text-align:center;padding:24px">
+        <p class="eyebrow">情报入库</p>
+        <div style="font-size:48px;font-weight:800;color:var(--accent)"><span class="counter" data-to="131">0</span></div>
+        <p class="dim" style="font-size:12px">条情报已写入多维表格</p>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <p class="eyebrow">金标准</p>
+        <div style="font-size:48px;font-weight:800;color:var(--accent-2)"><span class="counter" data-to="40">0</span></div>
+        <p class="dim" style="font-size:12px">条 · 6 类场景覆盖</p>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <p class="eyebrow">评测指标</p>
+        <div style="font-size:48px;font-weight:800;color:var(--good)"><span class="counter" data-to="5">0</span>/<span class="counter" data-to="5">0</span></div>
+        <p class="dim" style="font-size:12px">维全部达标</p>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <p class="eyebrow">团队规模</p>
+        <div style="font-size:48px;font-weight:800;color:var(--warn)"><span class="counter" data-to="7">0</span></div>
+        <p class="dim" style="font-size:12px">人 · 3 角色配置</p>
+      </div>
+    </div>
+    <div class="grid g3 mt-l" style="gap:16px">
+      <div class="card" style="padding:18px">
+        <div style="font-size:28px">📡</div>
+        <h4 class="mt-s" style="font-size:16px">采集渠道</h4>
+        <p class="dim" style="font-size:13px">20 组 Google News 查询（Thailand 强制限定）+ 4 固定 RSS 源</p>
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="font-size:28px">🤖</div>
+        <h4 class="mt-s" style="font-size:16px">双模型架构</h4>
+        <p class="dim" style="font-size:13px">claude-opus-5 摘要 + gpt-5.6-sol 打分，独立调用避免评分波动</p>
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="font-size:28px">📖</div>
+        <h4 class="mt-s" style="font-size:16px">工程化文档</h4>
+        <p class="dim" style="font-size:13px">AI 工程化落地实践手册 v1.1 + 打分评测复盘报告</p>
+      </div>
+    </div>
+    <div class="deck-footer"><span class="dim2">成果与规划</span><span>项目成果</span></div>
+    <div class="notes">6 周交付成果：131 条情报已入库，40 条金标准覆盖 6 类场景，5 维评测指标全部达标，7 人 3 角色团队。采集渠道 20 组查询 + 4 固定源，双模型架构分离摘要和打分，还产出了 AI 工程化落地实践手册和评测复盘报告两份文档。</div>
+  </section>
+
+  <!-- 15. 采集优化历程 -->
+  <section class="slide" data-deck-label="采集优化">
+    <p class="kicker">Optimization · 采集优化</p>
+    <h2 class="h2">查询词从 11 组到 20 组，噪音过滤历程</h2>
+    <div class="vs">
+      <div class="card bad-side side anim-fade-left" data-anim="fade-left">
+        <h3>📉 优化前</h3>
+        <ul>
+          <li>11 组查询词，OR 分支无 Thailand 限定</li>
+          <li>时间窗口 2 天，周末几乎无新闻</li>
+          <li>每渠道上限 10 条，宽查询占满名额</li>
+          <li>40 条新增里大量国际噪音（加密货币、英国银行促销）</li>
+          <li>飞书推送 0 条 — 高质量情报被噪音淹没</li>
+        </ul>
+      </div>
+      <div class="mid">→</div>
+      <div class="card good-side side anim-fade-right" data-anim="fade-right">
+        <h3>📈 优化后</h3>
+        <ul>
+          <li>20 组查询，全部 Thailand AND (...) 强制限定</li>
+          <li>时间窗口扩大到 7 天，覆盖工作日新闻</li>
+          <li>每渠道上限降到 5 条，20 组分布更均匀</li>
+          <li>69 条采集 / 38 条新增，泰国相关内容占比大幅提升</li>
+          <li>待解决：周末高质量情报仍稀缺，考虑兜底逻辑</li>
+        </ul>
+      </div>
+    </div>
+    <div class="deck-footer"><span class="dim2">成果与规划</span><span>采集优化</span></div>
+    <div class="notes">采集优化经历了从 11 组到 20 组的历程。核心问题是查询词没有 Thailand 限定，导致大量国际噪音。优化后全部用 Thailand AND 结构，时间窗口从 2 天扩到 7 天，每渠道上限从 10 降到 5。结果采集量 69 条，新增 38 条，泰国相关内容占比大幅提升。但周末高质量情报仍稀缺，正在考虑兜底逻辑。</div>
+  </section>
+
+  <!-- 16. 下一步规划 -->
+  <section class="slide" data-deck-label="下一步规划">
+    <p class="kicker">Roadmap · 下一步</p>
+    <h2 class="h2">近期、中期、长期三档规划</h2>
+    <div class="tl">
+      <div class="row anim-stagger-list" data-anim-target>
+        <div class="item"><div class="year">近期 1-2W</div><div class="dot"></div><h4>推送策略优化</h4><p>降低阈值或兜底逻辑<br>解决周末空窗</p></div>
+        <div class="item"><div class="year">近期 1-2W</div><div class="dot"></div><h4>二级菜单评测</h4><p>补充到 eval-gate 门禁<br>8 选 1 分类指标</p></div>
+        <div class="item"><div class="year">近期 1-2W</div><div class="dot"></div><h4>Spearman 秩相关</h4><p>整体排序一致性评估<br>衡量模型排序质量</p></div>
+        <div class="item"><div class="year">中期 1M</div><div class="dot"></div><h4>v2 渠道扩展</h4><p>65 候选源精选 10-15<br>BOT 官网/律所/NITMX</p></div>
+        <div class="item"><div class="year">中期 1M</div><div class="dot"></div><h4>e-GP 政府采购</h4><p>接入官方招标 API<br>最有价值直接信号源</p></div>
+        <div class="item"><div class="year">长期 2-3M</div><div class="dot"></div><h4>知识图谱</h4><p>实体归一化<br>公司关系网络</p></div>
+      </div>
+    </div>
+    <div class="deck-footer"><span class="dim2">成果与规划</span><span>下一步</span></div>
+    <div class="notes">下一步分三档：近期 1-2 周做推送策略优化、二级菜单评测和 Spearman 秩相关；中期 1 个月做 v2 渠道扩展和 e-GP 政府采购 API 接入；长期 2-3 个月做知识图谱。e-GP 是最有价值的，因为它是官方招标信号源。</div>
+  </section>
+
+  <!-- 17. Thanks -->
+  <section class="slide center tc" data-deck-label="Thanks">
+    <div>
+      <div class="anim-confetti-burst" style="display:inline-block;padding:40px"></div>
+      <h1 class="h1 anim-fade-up" data-anim="fade-up" style="font-size:160px;line-height:1"><span class="gradient-text">Thanks</span></h1>
+      <p class="lede" style="margin:18px auto 0">泰国支付市场情报平台 · Hackathon 2026</p>
+      <div class="row mt-l" style="justify-content:center;gap:32px">
+        <div class="dim">7 人团队 · 6 周交付</div>
+        <div class="dim">5 维指标全达标</div>
+        <div class="dim">131 条情报已入库</div>
+      </div>
+    </div>
+    <div class="notes">感谢大家的聆听。这个项目 7 人团队 6 周交付，5 维评测指标全达标，131 条情报已入库。欢迎提问。</div>
+  </section>
+
+</deck-stage>
+<script src="./_shared/runtime.js"></script>
+</body>
+</html>
