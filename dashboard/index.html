@@ -951,18 +951,33 @@ function initCharts() {
   chartSection = echarts.init(document.getElementById('chartSection'), null, { renderer: 'svg' });
   const sections = {};
   allItems.forEach(i => { sections[i.section] = (sections[i.section] || 0) + 1; });
+  const newsCount = sections['行业新闻'] || 0;
+  const tenderCount = sections['招标机会'] || 0;
   chartSection.setOption({
-    tooltip: { trigger: 'item' },
+    tooltip: { trigger: 'item', formatter: '{b}: {c} 条 ({d}%)' },
     legend: { bottom: 0, textStyle: { color: '#94a3b8', fontSize: 11 } },
+    graphic: [{
+      type: 'text',
+      left: 'center',
+      top: '38%',
+      style: {
+        text: allItems.length + '\n总计',
+        textAlign: 'center',
+        fill: '#f1f5f9',
+        fontSize: 16,
+        fontWeight: 700,
+        lineHeight: 22
+      }
+    }],
     series: [{
       type: 'doughnut',
-      radius: ['50%', '75%'],
-      center: ['50%', '45%'],
+      radius: ['60%', '78%'],
+      center: ['50%', '42%'],
       avoidLabelOverlap: false,
       label: { show: false },
       data: [
-        { value: sections['行业新闻'] || 0, name: '行业新闻', itemStyle: { color: '#38bdf8' } },
-        { value: sections['招标机会'] || 0, name: '招标机会', itemStyle: { color: '#fbbf24' } }
+        { value: newsCount, name: '行业新闻', itemStyle: { color: '#38bdf8' } },
+        { value: tenderCount, name: '招标机会', itemStyle: { color: '#fbbf24' } }
       ]
     }]
   });
