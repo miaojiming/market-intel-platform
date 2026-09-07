@@ -62,9 +62,134 @@
     font-size: 13px; color: var(--text-2);
   }
   .header-right {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 10px;
     font-size: 13px; color: var(--text-2);
   }
+  .push-btn {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+  .push-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+  .push-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .settings-btn {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-2);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .settings-btn:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--text);
+  }
+  /* Settings Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .modal label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+  .modal input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    box-sizing: border-box;
+  }
+  .modal input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+  .modal-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+  }
+  .modal-btn.primary {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+  }
+  .modal-btn.secondary {
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid var(--border);
+  }
+  /* Push toast */
+  .push-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 2000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+  }
+  .push-toast.show { transform: translateX(0); }
+  .push-toast.success { background: #065f46; color: #d1fae5; border: 1px solid #10b981; }
+  .push-toast.error { background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444; }
+  .push-toast.loading { background: #1e3a8a; color: #dbeafe; border: 1px solid #3b82f6; }
   .status-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--good);
@@ -509,8 +634,10 @@
     </div>
   </div>
   <div class="header-right">
-    <span><span class="status-dot"></span>实时同步</span>
-    <span id="lastUpdate">更新中...</span>
+    <button class="push-btn" id="pushBtn" onclick="handlePushNow()">
+      <span>📨</span> 立即推送
+    </button>
+    <button class="settings-btn" onclick="toggleSettings()" title="设置">⚙️</button>
   </div>
 </header>
 
@@ -1160,6 +1287,116 @@ document.getElementById('filterMinScore').addEventListener('change', applyFilter
 document.getElementById('filterTime').addEventListener('change', applyFilters);
 document.getElementById('filterSearch').addEventListener('input', applyFilters);
 document.getElementById('sortBy').addEventListener('change', applyFilters);
+
+// ==========================================
+// 立即推送 + 设置
+// ==========================================
+const PUSH_API_KEY = 'push_api_endpoint';
+const PUSH_API_KEY_KEY = 'push_api_key';
+
+function getPushApiUrl() {
+  return localStorage.getItem(PUSH_API_KEY) || '';
+}
+function getPushApiKey() {
+  return localStorage.getItem(PUSH_API_KEY_KEY) || '';
+}
+
+function showToast(message, type = 'loading', duration = 3000) {
+  let toast = document.getElementById('pushToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'pushToast';
+    toast.className = 'push-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.className = 'push-toast ' + type + ' show';
+
+  if (type !== 'loading' && duration > 0) {
+    setTimeout(() => { toast.classList.remove('show'); }, duration);
+  }
+}
+
+async function handlePushNow() {
+  const apiUrl = getPushApiUrl();
+  if (!apiUrl) {
+    showToast('请先在设置中配置 Push API 地址', 'error', 3000);
+    toggleSettings();
+    return;
+  }
+
+  const btn = document.getElementById('pushBtn');
+  btn.disabled = true;
+  showToast('正在推送...', 'loading', 0);
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    const apiKey = getPushApiKey();
+    if (apiKey) {
+      headers['X-API-Key'] = apiKey;
+    }
+
+    const resp = await fetch(apiUrl.replace(/\/$/, '') + '/api/push-now', {
+      method: 'POST',
+      headers: headers,
+    });
+
+    const data = await resp.json();
+
+    if (resp.ok && data.success) {
+      const mode = data.is_fallback ? '（兜底精选）' : '';
+      showToast(`✅ 推送成功${mode}，共 ${data.count} 条`, 'success', 4000);
+    } else {
+      showToast('❌ ' + (data.message || data.detail || '推送失败'), 'error', 4000);
+    }
+  } catch (e) {
+    showToast('❌ 推送请求失败：' + e.message, 'error', 4000);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function toggleSettings() {
+  let modal = document.getElementById('settingsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'settingsModal';
+    modal.className = 'modal-overlay';
+    modal.onclick = function(e) { if (e.target === modal) toggleSettings(); };
+    modal.innerHTML = `
+      <div class="modal">
+        <h3>⚙️ 推送设置</h3>
+        <label>Push API 地址</label>
+        <input type="text" id="settingApiUrl" placeholder="https://your-app.up.railway.app" />
+        <label>API Key（可选）</label>
+        <input type="password" id="settingApiKey" placeholder="留空表示不需要" />
+        <div class="modal-actions">
+          <button class="modal-btn secondary" onclick="toggleSettings()">取消</button>
+          <button class="modal-btn primary" onclick="saveSettings()">保存</button>
+        </div>
+        <p style="font-size: 11px; color: var(--text-3); margin-top: 12px; text-align: center;">
+          设置保存在浏览器本地，不会上传到服务器
+        </p>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // 填充当前值
+  document.getElementById('settingApiUrl').value = getPushApiUrl();
+  document.getElementById('settingApiKey').value = getPushApiKey();
+
+  modal.classList.toggle('show');
+}
+
+function saveSettings() {
+  const url = document.getElementById('settingApiUrl').value.trim();
+  const key = document.getElementById('settingApiKey').value.trim();
+  localStorage.setItem(PUSH_API_KEY, url);
+  localStorage.setItem(PUSH_API_KEY_KEY, key);
+  toggleSettings();
+  showToast('设置已保存', 'success', 2000);
+}
 
 // ==========================================
 // 启动
