@@ -178,32 +178,65 @@
     color: #7c3aed;
     font-weight: 700;
   }
+  .feishu-box {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    border: 2px solid #3b82f6;
+    text-align: center;
+  }
+  .feishu-box .fs-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 8px;
+  }
+  .feishu-box .fs-desc {
+    font-size: 13px;
+    color: #1e3a8a;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .feishu-box .fs-btn {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    text-decoration: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .feishu-box .fs-btn:hover {
+    background: #2563eb;
+  }
   .btn-row {
     text-align: center;
-    margin: 24px 0;
+    margin: 12px 0;
   }
   .btn-primary {
     display: inline-block;
     background: linear-gradient(135deg, #2563eb, #7c3aed);
     color: white;
     text-decoration: none;
-    padding: 12px 32px;
-    border-radius: 8px;
+    padding: 9px 22px;
+    border-radius: 6px;
     font-weight: 600;
-    font-size: 14px;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
   }
   .btn-secondary {
     display: inline-block;
     background: white;
     color: #2563eb;
     text-decoration: none;
-    padding: 12px 28px;
-    border-radius: 8px;
+    padding: 9px 18px;
+    border-radius: 6px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     border: 1px solid #cbd5e1;
-    margin-left: 8px;
+    margin-left: 6px;
   }
   ul.list {
     padding-left: 20px;
@@ -415,14 +448,18 @@
 
       <!-- 访问方式 -->
       <div class="section-title">🌐 立即体验</div>
-      <p style="font-size: 14px; margin: 0 0 12px;">您可以通过以下方式了解和体验项目：</p>
+      <p style="font-size: 14px; margin: 0 0 16px;">
+        平台的<strong>主要使用方式是飞书推送</strong>，每天早 8:00 自动推送高价值情报。
+        也可通过下方链接浏览仪表盘和工程化文档。
+      </p>
 
       <div class="btn-row">
-        <a href="https://miaojiming.github.io/market-intel-platform/" class="btn-primary" target="_blank">📊 在线仪表盘</a>
+        <a href="https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=15di7d18-60ea-43de-87b9-a7a2e7430478" class="btn-primary" target="_blank">💬 加入飞书体验群</a>
       </div>
-      <div class="btn-row" style="margin-top: -12px;">
-        <a href="https://github.com/miaojiming/market-intel-platform" class="btn-secondary" target="_blank">💻 源码仓库</a>
+      <div class="btn-row">
+        <a href="https://miaojiming.github.io/market-intel-platform/" class="btn-secondary" target="_blank">📊 在线仪表盘</a>
         <a href="https://miaojiming.github.io/market-intel-platform/docs/ai-engineering-playbook/ai-engineering-playbook.html" class="btn-secondary" target="_blank">📖 工程化手册</a>
+        <a href="https://github.com/miaojiming/market-intel-platform" class="btn-secondary" target="_blank">💻 源码仓库</a>
       </div>
 
       <div class="divider"></div>
