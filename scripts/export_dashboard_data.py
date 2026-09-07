@@ -69,11 +69,11 @@ def transform_record(rec: dict) -> dict:
 
     item = {
         "id": rec.get("record_id", ""),
-        "title": f.get("标题", ""),
-        "summary_zh": f.get("内容摘要", ""),
-        "thailand_relevance": f.get("泰国相关度", 0) or 0,
-        "opportunity_strength": f.get("商机强度", 0) or 0,
-        "timeliness": f.get("时效性", 0) or 0,
+        "title": f.get("标题", "") or "",
+        "summary_zh": f.get("内容摘要", "") or "",
+        "thailand_relevance": float(f.get("泰国相关度") or 0),
+        "opportunity_strength": float(f.get("商机强度") or 0),
+        "timeliness": float(f.get("时效性") or 0),
         "section": f.get("板块", "") or "",
         "subsection": f.get("二级菜单", "") or "",
         "tags": f.get("标签", []) or [],
