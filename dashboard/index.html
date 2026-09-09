@@ -1343,6 +1343,15 @@ async function handlePushNow() {
     return;
   }
 
+  // 验证 URL 格式
+  let targetUrl;
+  try {
+    targetUrl = new URL(apiUrl.replace(/\/$/, '') + '/api/push-now');
+  } catch (e) {
+    showToast('❌ API 地址格式不正确，请检查设置', 'error', 4000);
+    return;
+  }
+
   const btn = document.getElementById('pushBtn');
   btn.disabled = true;
   showToast('正在推送...', 'loading', 0);
@@ -1354,7 +1363,7 @@ async function handlePushNow() {
       headers['X-API-Key'] = apiKey;
     }
 
-    const resp = await fetch(apiUrl.replace(/\/$/, '') + '/api/push-now', {
+    const resp = await fetch(targetUrl.toString(), {
       method: 'POST',
       headers: headers,
     });
@@ -1368,7 +1377,11 @@ async function handlePushNow() {
       showToast('❌ ' + (data.message || data.detail || '推送失败'), 'error', 4000);
     }
   } catch (e) {
-    showToast('❌ 推送请求失败：' + e.message, 'error', 4000);
+    let msg = e.message;
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+      msg = '网络连接失败，请检查 API 地址是否正确，或是否存在跨域限制';
+    }
+    showToast('❌ ' + msg, 'error', 5000);
   } finally {
     btn.disabled = false;
   }
@@ -1388,7 +1401,8 @@ function toggleSettings() {
         <input type="text" id="settingApiUrl" placeholder="https://your-app.up.railway.app" />
         <label>API Key（可选）</label>
         <input type="password" id="settingApiKey" placeholder="留空表示不需要" />
-        <div class="modal-actions">
+        <div class="modal-actions" style="justify-content: space-between;">
+          <button class="modal-btn secondary" onclick="testConnection()" style="margin-right: auto;">🔌 测试连接</button>
           <button class="modal-btn secondary" onclick="toggleSettings()">取消</button>
           <button class="modal-btn primary" onclick="saveSettings()">保存</button>
         </div>
@@ -1405,6 +1419,29 @@ function toggleSettings() {
   document.getElementById('settingApiKey').value = getPushApiKey();
 
   modal.classList.toggle('show');
+}
+
+async function testConnection() {
+  const url = document.getElementById('settingApiUrl').value.trim();
+  const key = document.getElementById('settingApiKey').value.trim();
+  if (!url) {
+    showToast('请先填写 API 地址', 'error', 2000);
+    return;
+  }
+  showToast('正在测试连接...', 'loading', 0);
+  try {
+    const headers = {};
+    if (key) headers['X-API-Key'] = key;
+    const resp = await fetch(url.replace(/\/$/, '') + '/api/health', { headers });
+    if (resp.ok) {
+      const data = await resp.json();
+      showToast('✅ 连接成功！服务状态：' + data.status, 'success', 3000);
+    } else {
+      showToast('❌ 连接失败：HTTP ' + resp.status, 'error', 3000);
+    }
+  } catch (e) {
+    showToast('❌ 连接失败：' + e.message, 'error', 4000);
+  }
 }
 
 function saveSettings() {
