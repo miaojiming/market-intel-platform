@@ -1620,6 +1620,112 @@ jobs:
   </div>
 </section>
 
+<!-- 6.8 数据飞轮 -->
+<section id="data-flywheel">
+  <h3 id="flywheel">6.8 数据飞轮闭环</h3>
+
+  <p>AI 系统的核心竞争力不在于初次上线时的效果，而在于<strong>能否通过用户反馈持续自我优化</strong>。数据飞轮是连接「用户使用」和「模型迭代」的关键闭环。</p>
+
+  <h4>6.8.1 飞轮架构</h4>
+
+  <div class="phase-block">
+    <div class="phase-step">
+      <div class="step-num">1</div>
+      <div class="step-title">用户使用</div>
+      <div class="step-desc">用户在飞书推送、仪表盘浏览情报</div>
+    </div>
+    <div class="phase-arrow">→</div>
+    <div class="phase-step">
+      <div class="step-num">2</div>
+      <div class="step-title">反馈收集</div>
+      <div class="step-desc">一键反馈：打分偏高/偏低、分类错误、摘要不准、噪音</div>
+    </div>
+    <div class="phase-arrow">→</div>
+    <div class="phase-step">
+      <div class="step-num">3</div>
+      <div class="step-title">金标准校准</div>
+      <div class="step-desc">人工审核反馈，纳入金标准数据集</div>
+    </div>
+    <div class="phase-arrow">→</div>
+    <div class="phase-step">
+      <div class="step-num">4</div>
+      <div class="step-title">评测迭代</div>
+      <div class="step-desc">跑评测、调 Prompt、CI 门禁验证效果</div>
+    </div>
+  </div>
+
+  <h4>6.8.2 反馈入口设计</h4>
+
+  <p>降低用户反馈门槛，是飞轮能否转起来的关键。目前提供两个反馈入口：</p>
+
+  <table>
+    <thead>
+      <tr><th>入口</th><th>场景</th><th>方式</th><th>特点</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>飞书卡片按钮</td>
+        <td>每日推送时</td>
+        <td>每条情报下的 👍 / 👎 按钮</td>
+        <td>最便捷，点击即跳转到反馈页</td>
+      </tr>
+      <tr>
+        <td>仪表盘详情</td>
+        <td>深度浏览时</td>
+        <td>情报详情页的反馈入口</td>
+        <td>信息最全，适合详细反馈</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>6.8.3 反馈数据结构</h4>
+
+  <p>反馈表（多维表格第二张表）字段设计：</p>
+
+  <table>
+    <thead>
+      <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>情报标题</td><td>文本</td><td>用户反馈的那条情报</td></tr>
+      <tr><td>原文链接</td><td>URL</td><td>用于关联定位</td></tr>
+      <tr><td>反馈类型</td><td>单选</td><td>打分偏高 / 打分偏低 / 分类错误 / 摘要不准 / 标签不对 / 噪音 / 有价值</td></tr>
+      <tr><td>反馈人</td><td>文本</td><td>匿名或用户名</td></tr>
+      <tr><td>原权重分</td><td>数字</td><td>当前模型给出的分数</td></tr>
+      <tr><td>原三维打分</td><td>数字 × 3</td><td>泰国相关度 / 商机强度 / 时效性</td></tr>
+      <tr><td>备注</td><td>长文本</td><td>用户补充说明</td></tr>
+      <tr><td>来源</td><td>单选</td><td>飞书卡片 / 仪表盘</td></tr>
+      <tr><td>处理状态</td><td>单选</td><td>待处理 / 已纳入金标准 / 已修复 / 暂不处理</td></tr>
+      <tr><td>反馈时间</td><td>日期</td><td>自动记录</td></tr>
+    </tbody>
+  </table>
+
+  <h4>6.8.4 反馈 → 金标准的流转规则</h4>
+
+  <p>不是所有反馈都要进入金标准，需要有明确的流转判断：</p>
+
+  <div class="callout">
+    <strong>纳入金标准的条件（满足任一即可）：</strong><br>
+    ① 多个用户对同一条情报给出相同类型的反馈（≥ 2 人）<br>
+    ② 领域专家确认的明确错误（如分类完全不对）<br>
+    ③ 打分偏差 ≥ 3 分（明显的打分失误）
+  </div>
+
+  <p><strong>处理流程：</strong></p>
+  <ol class="steps-list">
+    <li>每周定期 review 反馈表中的「待处理」条目</li>
+    <li>判断是否属于模型问题（还是用户理解偏差）</li>
+    <li>确认是模型问题的，补充到金标准数据集（`scoring_goldens.jsonl`）</li>
+    <li>触发 CI 评测，看当前指标是否已经不达标</li>
+    <li>如果不达标，调整 Prompt 并迭代，走完整评测流程</li>
+    <li>反馈表标记为「已纳入金标准」或「已修复」</li>
+  </ol>
+
+  <div class="callout success">
+    <strong>核心原则</strong>：金标准数据集只能加、不能删。每条反馈都是宝贵的 bad case，是模型持续进化的燃料。
+  </div>
+</section>
+
 <!-- 7. 关键决策记录 -->
 <section id="decisions">
   <h2>七、关键决策记录</h2>
