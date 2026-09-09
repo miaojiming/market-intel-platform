@@ -168,6 +168,16 @@ def api_push_now():
     从多维表格读取最新高价值情报，直接推送到飞书群
     不重新采集，响应快
     """
+    try:
+        return _do_push_now()
+    except Exception as e:
+        import traceback
+        print(f"[push-now] ERROR: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+
+
+def _do_push_now():
     from app.bitable import (
         BITABLE_APP_TOKEN, BITABLE_TABLE_ID,
         get_tenant_token,
@@ -198,7 +208,7 @@ def api_push_now():
         )
         body = resp.json()
         if body.get("code") != 0:
-            raise HTTPException(status_code=500, detail=f"读取多维表格失败: {body.get('msg')}")
+            raise RuntimeError(f"读取多维表格失败: {body.get('msg')} (code={body.get('code')})")
         data = body.get("data", {})
         for rec in data.get("items", []) or []:
             fields = rec.get("fields", {})
