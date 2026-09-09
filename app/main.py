@@ -11,6 +11,7 @@ import threading
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.intelligence import run_intelligence_daily
@@ -28,6 +29,14 @@ load_dotenv()
 
 app = FastAPI(title="市场智能情报与获客平台 MVP")
 
+# CORS：允许仪表盘跨域调用
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 # 飞书验证 token（可选）
 FEISHU_VERIFICATION_TOKEN = os.getenv("FEISHU_VERIFICATION_TOKEN", "")
 
@@ -38,6 +47,11 @@ scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
 # ================ 健康检查 ================
 @app.get("/health")
 def health():
+    return {"status": "ok", "time": datetime.now().isoformat()}
+
+# 仪表盘测试连接用
+@app.get("/api/health")
+def api_health():
     return {"status": "ok", "time": datetime.now().isoformat()}
 
 
@@ -144,6 +158,117 @@ def api_profile(company: str):
         raise HTTPException(status_code=400, detail="company 参数必填")
     profile = generate_profile(company)
     return profile
+
+
+# ================ 立即推送（仪表盘用） ================
+@app.post("/api/push-now")
+def api_push_now():
+    """
+    仪表盘「立即推送」按钮的后端接口
+    从多维表格读取最新高价值情报，直接推送到飞书群
+    不重新采集，响应快
+    """
+    import time
+    from app.bitable import (
+        BITABLE_APP_TOKEN, BITABLE_TABLE_ID,
+        _get_tenant_token, _field_val,
+    )
+    import requests
+
+    PUSH_THRESHOLD = float(os.getenv("PUSH_THRESHOLD", "5.0"))
+    PUSH_MAX = int(os.getenv("PUSH_MAX", "10"))
+    FALLBACK_TH_RELEVANCE = int(os.getenv("FALLBACK_TH_RELEVANCE", "5"))
+    FALLBACK_MAX = int(os.getenv("FALLBACK_MAX", "5"))
+
+    FEISHU_HOST = "https://open.feishu.cn"
+    token = _get_tenant_token()
+
+    # 1. 从多维表格读取最新情报
+    items = []
+    page_token = ""
+    while True:
+        params = {"page_size": 200, "sort": '[{"field_name":"采集时间","desc":true}]'}
+        if page_token:
+            params["page_token"] = page_token
+        resp = requests.get(
+            f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
+            f"/tables/{BITABLE_TABLE_ID}/records",
+            headers={"Authorization": f"Bearer {token}"},
+            params=params,
+            timeout=20,
+        )
+        body = resp.json()
+        if body.get("code") != 0:
+            raise HTTPException(status_code=500, detail=f"读取多维表格失败: {body.get('msg')}")
+        data = body.get("data", {})
+        for rec in data.get("items", []) or []:
+            fields = rec.get("fields", {})
+            th = float(_field_val(fields, "泰国相关度", 0) or 0)
+            op = float(_field_val(fields, "商机强度", 0) or 0)
+            ti = float(_field_val(fields, "时效性", 0) or 0)
+            score = round(0.4 * th + 0.4 * op + 0.2 * ti, 1)
+
+            link_obj = fields.get("原文链接", {})
+            if isinstance(link_obj, dict):
+                link = link_obj.get("link", "")
+            else:
+                link = str(link_obj or "")
+
+            tags_field = fields.get("标签", [])
+            if isinstance(tags_field, list):
+                tags = tags_field
+            elif isinstance(tags_field, str):
+                tags = [tags_field]
+            else:
+                tags = []
+
+            items.append({
+                "title": _field_val(fields, "标题", ""),
+                "summary_zh": _field_val(fields, "内容摘要", ""),
+                "thailand_relevance": th,
+                "opportunity_strength": op,
+                "timeliness": ti,
+                "weight_score": score,
+                "section": _field_val(fields, "板块", ""),
+                "subsection": _field_val(fields, "二级菜单", ""),
+                "tags": tags,
+                "source_name": _field_val(fields, "信息来源", ""),
+                "source_url": link,
+                "collected_at": _field_val(fields, "采集时间", 0),
+            })
+        if len(items) >= 80 or not data.get("has_more"):
+            break
+        page_token = data.get("page_token", "")
+
+    # 2. 按权重分排序
+    items.sort(key=lambda x: x["weight_score"], reverse=True)
+
+    # 3. 筛选达标
+    qualified = [i for i in items if i["weight_score"] >= PUSH_THRESHOLD]
+    is_fallback = False
+
+    if qualified:
+        to_push = qualified[:PUSH_MAX]
+    else:
+        # 兜底
+        fallback_items = [i for i in items if i["thailand_relevance"] >= FALLBACK_TH_RELEVANCE]
+        to_push = fallback_items[:FALLBACK_MAX]
+        is_fallback = True
+
+    if not to_push:
+        return {"success": False, "count": 0, "is_fallback": False,
+                "message": "没有符合条件的情报可推送"}
+
+    # 4. 发送飞书卡片
+    ok = send_intelligence_card(to_push)
+
+    mode = "高价值情报" if not is_fallback else "兜底精选"
+    return {
+        "success": ok,
+        "count": len(to_push),
+        "is_fallback": is_fallback,
+        "message": f"推送成功（{mode}，{len(to_push)}条）" if ok else "推送失败",
+    }
 
 
 # ================ 定时任务 ================
