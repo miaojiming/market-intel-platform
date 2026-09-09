@@ -168,10 +168,9 @@ def api_push_now():
     从多维表格读取最新高价值情报，直接推送到飞书群
     不重新采集，响应快
     """
-    import time
     from app.bitable import (
         BITABLE_APP_TOKEN, BITABLE_TABLE_ID,
-        _get_tenant_token, _field_val,
+        get_tenant_token,
     )
     import requests
 
@@ -181,7 +180,7 @@ def api_push_now():
     FALLBACK_MAX = int(os.getenv("FALLBACK_MAX", "5"))
 
     FEISHU_HOST = "https://open.feishu.cn"
-    token = _get_tenant_token()
+    token = get_tenant_token()
 
     # 1. 从多维表格读取最新情报
     items = []
@@ -203,9 +202,9 @@ def api_push_now():
         data = body.get("data", {})
         for rec in data.get("items", []) or []:
             fields = rec.get("fields", {})
-            th = float(_field_val(fields, "泰国相关度", 0) or 0)
-            op = float(_field_val(fields, "商机强度", 0) or 0)
-            ti = float(_field_val(fields, "时效性", 0) or 0)
+            th = float(fields.get("泰国相关度") or 0)
+            op = float(fields.get("商机强度") or 0)
+            ti = float(fields.get("时效性") or 0)
             score = round(0.4 * th + 0.4 * op + 0.2 * ti, 1)
 
             link_obj = fields.get("原文链接", {})
@@ -223,18 +222,18 @@ def api_push_now():
                 tags = []
 
             items.append({
-                "title": _field_val(fields, "标题", ""),
-                "summary_zh": _field_val(fields, "内容摘要", ""),
+                "title": fields.get("标题", ""),
+                "summary_zh": fields.get("内容摘要", ""),
                 "thailand_relevance": th,
                 "opportunity_strength": op,
                 "timeliness": ti,
                 "weight_score": score,
-                "section": _field_val(fields, "板块", ""),
-                "subsection": _field_val(fields, "二级菜单", ""),
+                "section": fields.get("板块", ""),
+                "subsection": fields.get("二级菜单", ""),
                 "tags": tags,
-                "source_name": _field_val(fields, "信息来源", ""),
+                "source_name": fields.get("信息来源", ""),
                 "source_url": link,
-                "collected_at": _field_val(fields, "采集时间", 0),
+                "collected_at": fields.get("采集时间", 0),
             })
         if len(items) >= 80 or not data.get("has_more"):
             break
