@@ -196,7 +196,7 @@ def _do_push_now():
     items = []
     page_token = ""
     while True:
-        params = {"page_size": 200, "sort": '[{"field_name":"采集时间","desc":true}]'}
+        params = {"page_size": 200}
         if page_token:
             params["page_token"] = page_token
         resp = requests.get(
@@ -245,7 +245,7 @@ def _do_push_now():
                 "source_url": link,
                 "collected_at": fields.get("采集时间", 0),
             })
-        if len(items) >= 80 or not data.get("has_more"):
+        if len(items) >= 200 or not data.get("has_more"):
             break
         page_token = data.get("page_token", "")
 
