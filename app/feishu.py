@@ -116,6 +116,39 @@ def send_intelligence_card(items: List[Dict]) -> bool:
         if i < len(items):
             elements.append({"tag": "hr"})
 
+        # 反馈按钮行（每条情报下面）
+        if item.get("weight_score") is not None:
+            feedback_url = os.getenv("FEEDBACK_PAGE_URL", "")
+            if feedback_url:
+                import urllib.parse
+                params = urllib.parse.urlencode({
+                    "title": item.get("title", ""),
+                    "url": url,
+                    "score": item.get("weight_score", ""),
+                    "th": item.get("thailand_relevance", ""),
+                    "op": item.get("opportunity_strength", ""),
+                    "ti": item.get("timeliness", ""),
+                    "src": "feishu_card",
+                })
+                fb_url = feedback_url + ("&" if "?" in feedback_url else "?") + params
+                elements.append({
+                    "tag": "action",
+                    "actions": [
+                        {
+                            "tag": "button",
+                            "text": {"tag": "plain_text", "content": "👍 有价值"},
+                            "type": "default",
+                            "url": fb_url + "&type=useful",
+                        },
+                        {
+                            "tag": "button",
+                            "text": {"tag": "plain_text", "content": "👎 不准"},
+                            "type": "default",
+                            "url": fb_url + "&type=score_low",
+                        },
+                    ]
+                })
+
     # 底部提示
     elements.append({"tag": "hr"})
     elements.append(

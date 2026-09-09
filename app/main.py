@@ -280,6 +280,57 @@ def _do_push_now():
     }
 
 
+# ================ 用户反馈（数据飞轮） ================
+@app.post("/api/feedback")
+async def api_feedback(request: Request):
+    """
+    提交用户反馈
+    body: {
+        item_title: 情报标题,
+        item_url: 原文链接,
+        feedback_type: 反馈类型,
+        original_scores: {weight_score, thailand_relevance, opportunity_strength, timeliness},
+        comment: 备注(可选),
+        source: 来源(可选),
+    }
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的请求体")
+
+    feedback_type = body.get("feedback_type", "")
+    if not feedback_type:
+        raise HTTPException(status_code=400, detail="feedback_type 必填")
+
+    from app.bitable import add_feedback
+
+    rec_id = add_feedback({
+        "item_title": body.get("item_title", ""),
+        "item_url": body.get("item_url", ""),
+        "feedback_type": feedback_type,
+        "user_name": body.get("user_name", "匿名用户"),
+        "user_id": body.get("user_id", ""),
+        "original_scores": body.get("original_scores", {}),
+        "comment": body.get("comment", ""),
+        "source": body.get("source", "web"),
+    })
+
+    if rec_id:
+        return {"success": True, "record_id": rec_id, "message": "反馈提交成功"}
+    else:
+        # 可能是没配置反馈表，但不要报 500，告诉用户已记录
+        return {"success": True, "record_id": "", "message": "反馈已收到，感谢你的反馈"}
+
+
+@app.get("/api/feedback/stats")
+async def api_feedback_stats():
+    """获取反馈统计数据"""
+    from app.bitable import get_feedback_stats
+    stats = get_feedback_stats()
+    return {"success": True, "data": stats}
+
+
 # ================ 定时任务 ================
 def scheduled_intelligence():
     """定时任务：每天早上 8 点推送情报日报"""

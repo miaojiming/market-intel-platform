@@ -166,3 +166,125 @@ def weighted_score(item: Dict) -> float:
     op = item.get("opportunity_strength") or 0
     ti = item.get("timeliness") or 0
     return round(0.4 * th + 0.4 * op + 0.2 * ti, 1)
+
+
+# ==========================================
+# 反馈表（数据飞轮）
+# ==========================================
+FEEDBACK_TABLE_ID = os.getenv("FEEDBACK_TABLE_ID", "")
+
+# 反馈类型枚举
+FEEDBACK_TYPES = {
+    "score_high": "打分偏高",
+    "score_low": "打分偏低",
+    "category_wrong": "分类错误",
+    "summary_wrong": "摘要不准确",
+    "tag_wrong": "标签不对",
+    "spam": "噪音/无关",
+    "useful": "有价值",
+}
+
+
+def add_feedback(feedback: Dict) -> Optional[str]:
+    """
+    写入一条用户反馈到反馈表
+    feedback: {
+        item_title: 情报标题,
+        item_url: 原文链接,
+        feedback_type: 反馈类型(见 FEEDBACK_TYPES keys),
+        user_name: 用户名,
+        user_id: 用户 open_id,
+        original_scores: {thailand_relevance, opportunity_strength, timeliness, weight_score},
+        comment: 用户备注(可选),
+        source: 来源(飞书卡片/仪表盘),
+    }
+    """
+    if not FEEDBACK_TABLE_ID:
+        print("[Bitable] 未配置 FEEDBACK_TABLE_ID，跳过反馈写入")
+        return None
+
+    try:
+        now_ms = int(time.time() * 1000)
+        fields = {
+            "情报标题": feedback.get("item_title", ""),
+            "原文链接": feedback.get("item_url", ""),
+            "反馈类型": feedback.get("feedback_type", ""),
+            "反馈人": feedback.get("user_name", ""),
+            "反馈人ID": feedback.get("user_id", ""),
+            "原权重分": feedback.get("original_scores", {}).get("weight_score"),
+            "原泰国相关度": feedback.get("original_scores", {}).get("thailand_relevance"),
+            "原商机强度": feedback.get("original_scores", {}).get("opportunity_strength"),
+            "原时效性": feedback.get("original_scores", {}).get("timeliness"),
+            "备注": feedback.get("comment", ""),
+            "来源": feedback.get("source", "飞书卡片"),
+            "处理状态": "待处理",
+            "反馈时间": now_ms,
+        }
+        # 过滤 None 值
+        fields = {k: v for k, v in fields.items() if v is not None}
+
+        resp = requests.post(
+            f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
+            f"/tables/{FEEDBACK_TABLE_ID}/records",
+            headers=_headers(),
+            json={"fields": fields},
+            timeout=20,
+        )
+        data = resp.json()
+        if data.get("code") == 0:
+            rec_id = data.get("data", {}).get("record", {}).get("record_id", "")
+            print(f"[Bitable] 反馈已写入: {feedback.get('feedback_type')} - {feedback.get('item_title', '')[:30]}")
+            return rec_id
+        else:
+            print(f"[Bitable] 反馈写入失败: code={data.get('code')}, msg={data.get('msg')}")
+            return None
+    except Exception as e:
+        print(f"[Bitable] 反馈写入异常: {e}")
+        return None
+
+
+def get_feedback_stats() -> Dict:
+    """获取反馈统计数据（用于仪表盘展示）"""
+    if not FEEDBACK_TABLE_ID:
+        return {"total": 0, "by_type": {}, "pending": 0}
+
+    try:
+        items = []
+        page_token = ""
+        while True:
+            params = {"page_size": 200}
+            if page_token:
+                params["page_token"] = page_token
+            resp = requests.get(
+                f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
+                f"/tables/{FEEDBACK_TABLE_ID}/records",
+                headers=_headers(),
+                params=params,
+                timeout=20,
+            )
+            body = resp.json()
+            if body.get("code") != 0:
+                return {"total": 0, "by_type": {}, "pending": 0}
+            data = body.get("data", {})
+            items.extend(data.get("items", []) or [])
+            if len(items) >= 500 or not data.get("has_more"):
+                break
+            page_token = data.get("page_token", "")
+
+        by_type = {}
+        pending = 0
+        for rec in items:
+            fields = rec.get("fields", {})
+            ftype = fields.get("反馈类型", "未知")
+            by_type[ftype] = by_type.get(ftype, 0) + 1
+            if fields.get("处理状态", "待处理") == "待处理":
+                pending += 1
+
+        return {
+            "total": len(items),
+            "by_type": by_type,
+            "pending": pending,
+        }
+    except Exception as e:
+        print(f"[Bitable] 反馈统计失败: {e}")
+        return {"total": 0, "by_type": {}, "pending": 0}

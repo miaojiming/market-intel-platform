@@ -683,6 +683,11 @@
       <div class="kpi-value" style="color: var(--accent-3);"><span id="kpiSources">0</span><span class="unit">个</span></div>
       <div class="kpi-delta">覆盖 20+ 检索维度</div>
     </div>
+    <div class="kpi-card" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border-color: rgba(59,130,246,0.3);">
+      <div class="kpi-label">🔄 数据飞轮</div>
+      <div class="kpi-value" style="color: #a78bfa;"><span id="kpiFeedback">0</span><span class="unit">条反馈</span></div>
+      <div class="kpi-delta"><span id="kpiFeedbackPending">0</span> 条待处理</div>
+    </div>
   </div>
 
   <!-- Charts Row -->
@@ -992,6 +997,7 @@ async function loadData() {
   applyFilters();
   initCharts();
   updateKPIs();
+  loadFeedbackStats();
 }
 
 // 飞书多维表格 API 接入（生产用）
@@ -1332,6 +1338,24 @@ function showToast(message, type = 'loading', duration = 3000) {
 
   if (type !== 'loading' && duration > 0) {
     setTimeout(() => { toast.classList.remove('show'); }, duration);
+  }
+}
+
+async function loadFeedbackStats() {
+  const apiUrl = getPushApiUrl();
+  if (!apiUrl) return;
+
+  try {
+    const resp = await fetch(apiUrl.replace(/\/$/, '') + '/api/feedback/stats');
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.success && data.data) {
+        document.getElementById('kpiFeedback').textContent = data.data.total || 0;
+        document.getElementById('kpiFeedbackPending').textContent = data.data.pending || 0;
+      }
+    }
+  } catch (e) {
+    // 静默失败，不影响主流程
   }
 }
 
