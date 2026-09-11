@@ -3,7 +3,7 @@
 <html lang="zh-CN" data-theme="amber-purple">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>打分金标准抽检清单（40 条）</title>
+<title>双金标准抽检清单 · 摘要 13 条 + 打分 40 条</title>
 <link rel="stylesheet" href="./_shared/fonts.css">
 <link rel="stylesheet" href="./_shared/base.css">
 <link id="theme-link" rel="stylesheet" href="./_shared/themes/amber-purple.css">
@@ -11,14 +11,30 @@
 <link rel="stylesheet" href="./_shared/decorations.css">
 <style>
   body{padding:40px 48px 60px;max-width:1400px;margin:0 auto}
-  .page-header{margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  .page-header{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
   .page-header h1{font-size:32px;margin-bottom:8px}
   .page-header .subtitle{color:var(--text-3);font-size:15px}
-  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 32px}
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-size:14px;margin-bottom:16px;font-weight:500}
+  .back-link:hover{text-decoration:underline}
+  /* 顶部 Tab 导航 */
+  .tab-nav{display:flex;gap:8px;margin:20px 0 28px}
+  .tab-nav a{padding:10px 22px;border-radius:10px;border:1px solid var(--border);color:var(--text-2);text-decoration:none;font-size:14px;font-weight:500;background:var(--bg-2);transition:all .2s}
+  .tab-nav a:hover{border-color:var(--accent);color:var(--accent)}
+  .tab-nav a.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tab-nav a .count{font-size:12px;opacity:.7;margin-left:4px}
+  /* 统计卡 */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:16px 0 28px}
   .stat-card{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:18px 20px}
   .stat-card .num{font-size:36px;font-weight:800;font-family:var(--font-mono);color:var(--accent)}
   .stat-card .label{color:var(--text-3);font-size:13px;margin-top:4px}
-  .section-title{font-size:20px;font-weight:700;margin:32px 0 14px;display:flex;align-items:center;gap:10px}
+  /* 大区块标题 */
+  .block-title{font-size:24px;font-weight:800;margin:40px 0 8px;display:flex;align-items:center;gap:12px;scroll-margin-top:20px}
+  .block-title .block-tag{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .block-title .block-tag.summary-tag{background:rgba(139,92,246,.15);color:var(--accent-2)}
+  .block-title .block-tag.scoring-tag{background:rgba(245,158,11,.12);color:var(--accent)}
+  .block-desc{color:var(--text-3);font-size:14px;margin-bottom:18px}
+  /* 分类标题 */
+  .section-title{font-size:18px;font-weight:700;margin:28px 0 12px;display:flex;align-items:center;gap:10px}
   .section-title .cat-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
   .section-title .cat-a{background:rgba(245,158,11,.12);color:var(--accent)}
   .section-title .cat-b{background:rgba(34,197,94,.12);color:var(--good)}
@@ -27,27 +43,36 @@
   .section-title .cat-e{background:rgba(239,68,68,.12);color:var(--danger)}
   .section-title .cat-f{background:rgba(168,85,247,.12);color:#a855f7}
   .section-title .count{color:var(--text-4);font-size:14px;font-weight:400}
+  /* 表格 */
   table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
   th{background:var(--bg-2);color:var(--text-2);font-weight:600;font-size:13px;position:sticky;top:0;z-index:1}
   tr:hover td{background:var(--bg-2)}
   td.score{font-family:var(--font-mono);font-weight:600;letter-spacing:1px}
-  td.id-col{font-family:var(--font-mono);font-size:12px;color:var(--text-3)}
+  td.id-col{font-family:var(--font-mono);font-size:12px;color:var(--text-3);white-space:nowrap}
   td.num-col{text-align:center;color:var(--text-4);font-family:var(--font-mono);font-size:13px}
-  td.date-col{color:var(--text-3);font-size:13px;font-family:var(--font-mono)}
-  .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:var(--bg-3);color:var(--text-2);margin:1px 2px}
+  td.date-col{color:var(--text-3);font-size:13px;font-family:var(--font-mono);white-space:nowrap}
+  td.title-col{min-width:240px;font-weight:500}
+  td.summary-col{color:var(--text-2);font-size:13px;line-height:1.6;max-width:480px}
+  .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:var(--bg-3);color:var(--text-2);margin:1px 2px;white-space:nowrap}
   .tag.recruit{background:rgba(34,197,94,.12);color:var(--good)}
   .tag.industry{background:rgba(245,158,11,.12);color:var(--accent)}
   .tag.policy{background:rgba(139,92,246,.15);color:var(--accent-2)}
-  .summary-box{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:32px}
+  .importance{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-weight:700;font-size:13px;font-family:var(--font-mono)}
+  .imp-5{background:rgba(239,68,68,.15);color:var(--danger)}
+  .imp-4{background:rgba(245,158,11,.15);color:var(--accent)}
+  .imp-3{background:rgba(251,191,36,.15);color:#d97706}
+  .imp-2{background:rgba(148,163,184,.15);color:var(--text-2)}
+  .imp-1{background:rgba(148,163,184,.10);color:var(--text-4)}
+  .summary-box{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:28px}
   .summary-box h3{font-size:17px;margin-bottom:14px}
   .summary-table th,.summary-table td{padding:10px 14px}
-  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-size:14px;margin-bottom:16px;font-weight:500}
-  .back-link:hover{text-decoration:underline}
-  .criteria-box{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:24px}
+  .criteria-box{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:20px}
   .criteria-box h3{font-size:16px;margin-bottom:10px}
   .criteria-box ul{margin:0;padding-left:20px;color:var(--text-2);font-size:14px;line-height:1.8}
   .criteria-box code{background:var(--bg-3);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:12px}
+  .divider{height:1px;background:var(--border);margin:40px 0}
+  .draft-note{display:inline-block;padding:4px 10px;border-radius:6px;font-size:11px;background:rgba(148,163,184,.12);color:var(--text-3);margin-left:8px;font-weight:500}
 </style>
 </head>
 <body data-themes="amber-purple,indigo-code,tokyo-night" data-theme-base="./_shared/themes/">
@@ -55,24 +80,205 @@
 <a href="roadshow.html" class="back-link">← 返回路演</a>
 
 <div class="page-header">
-  <h1>打分金标准抽检清单</h1>
-  <p class="subtitle">聚焦收单 SaaS + 收单独立部署 · 6 类场景 · 40 条人工校准</p>
+  <h1>双金标准抽检清单</h1>
+  <p class="subtitle">摘要金标准 13 条 + 打分金标准 40 条 · CI 评测门禁双校验</p>
+</div>
+
+<div class="tab-nav">
+  <a href="#summary-goldens">📝 摘要金标准 <span class="count">13 条</span></a>
+  <a href="#scoring-goldens">⚖️ 打分金标准 <span class="count">40 条</span></a>
 </div>
 
 <div class="stats-row">
   <div class="stat-card">
-    <div class="num">40</div>
-    <div class="label">金标准总数</div>
+    <div class="num">53</div>
+    <div class="label">金标准总数（13 + 40）</div>
   </div>
   <div class="stat-card">
-    <div class="num">6</div>
-    <div class="label">业务场景分类</div>
+    <div class="num">2</div>
+    <div class="label">评测类型</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">5</div>
+    <div class="label">打分评测维度</div>
   </div>
   <div class="stat-card">
     <div class="num">3</div>
-    <div class="label">轮评测迭代</div>
+    <div class="label">轮打分评测迭代</div>
   </div>
 </div>
+
+<!-- ========== 摘要金标准 ========== -->
+<h2 class="block-title" id="summary-goldens">
+  <span class="block-tag summary-tag">摘要金标准</span>
+  13 条
+</h2>
+<p class="block-desc">
+  测摘要质量：真实性、完整性、标签准确性。评测方式为 <b>LLM-as-Judge</b>（用另一个大模型当评委对比原文与摘要）。
+</p>
+
+<div class="criteria-box">
+  <h3>📋 抽检判定口径</h3>
+  <ul>
+    <li><b>真实性</b>：摘要内容是否忠实于原文，有无编造或歪曲</li>
+    <li><b>完整性</b>：核心信息（主体、事件、金额/规模、时间）是否缺失</li>
+    <li><b>标签准确度</b>：标签是否贴合内容，有无错标/漏标</li>
+    <li><b>重要性评分</b>：1-5 分是否合理（5=极高，1=噪音/无关）</li>
+    <li>问题标注 → 改 <code>eval/goldens.jsonl</code> → CI 自动跑回归</li>
+  </ul>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:40px">#</th>
+      <th style="width:90px">ID</th>
+      <th style="width:260px">原文标题</th>
+      <th>中文摘要（金标准）</th>
+      <th style="width:140px">标签</th>
+      <th style="width:50px">重要性</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="num-col">1</td>
+      <td class="id-col">case-001</td>
+      <td class="title-col">Sacombank 升级 Temenos 核心银行系统到混合云</td>
+      <td class="summary-col">越南领先商业银行 Sacombank 成功将其 Temenos 核心银行系统从本地部署升级至混合云环境，部署于 Red Hat OpenShift 和 IBM Power 基础设施上，支持数百万客户及日处理 1300 万笔交易。升级后应用性能提升 200%，部署周期缩短 3 倍，服务器占用减少 50%。同时 Sacombank 还选择了 Temenos Payments Hub 以支持跨境支付。</td>
+      <td><span class="tag">银行 IT</span><span class="tag">核心系统</span><span class="tag">Temenos</span><span class="tag">跨境收单</span></td>
+      <td><span class="importance imp-5">5</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">2</td>
+      <td class="id-col">case-002</td>
+      <td class="title-col">BankSouth 选择 FIS 作为核心银行平台提供商</td>
+      <td class="summary-col">资产 16 亿美元的乔治亚州社区银行 BankSouth 选择 FIS 作为其核心银行平台提供商，替换现有核心系统，以加速 AI 能力和金融科技整合。FIS 提供开放 API 平台 Code Connect、支付和卡业务能力、反欺诈预测分析以及标准化数据接口。</td>
+      <td><span class="tag">银行 IT</span><span class="tag">核心系统</span><span class="tag">FIS</span></td>
+      <td><span class="importance imp-4">4</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">3</td>
+      <td class="id-col">case-003</td>
+      <td class="title-col">Visa 和万事达 380 亿美元商户费率和解</td>
+      <td class="summary-col">美国法院初步批准 Visa 和万事达 380 亿美元和解协议，解决自 2005 年起 1200 万商户发起的反垄断诉讼。协议内容包括：交换费降低 0.1 个百分点持续五年，信用卡费率上限 1.25% 持续八年，商户可拒绝高费率信用卡，并可对高费率卡收取附加费。2025 年美国商户共支付近 1190 亿美元刷卡费。</td>
+      <td><span class="tag">费率</span><span class="tag">收单</span><span class="tag">合规</span><span class="tag">支付机构</span></td>
+      <td><span class="importance imp-5">5</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">4</td>
+      <td class="id-col">case-004</td>
+      <td class="title-col">Adyen 3.35 亿美元收购计费平台 Orb</td>
+      <td class="summary-col">Adyen 以 3.35 亿美元现金收购企业级计费平台 Orb，Orb 将成为 Adyen 间接全资子公司。Orb 成立于 2021 年，总部旧金山，提供实时用量数据追踪和复杂定价合约转换的基础设施引擎，服务 Vercel、Glean 等客户。收购旨在将计费逻辑与实时金融数据打通，提升反欺诈和交易成功率。</td>
+      <td><span class="tag">支付机构</span><span class="tag">收单</span><span class="tag">并购</span></td>
+      <td><span class="importance imp-4">4</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">5</td>
+      <td class="id-col">case-005</td>
+      <td class="title-col">哈尔滨银行绥化分行收单支付业务合作招标</td>
+      <td class="summary-col">哈尔滨银行绥化分行发布收单支付业务合作招标公告，公开招标第三方收单机构。最高限价：借记卡 0.45%（18 元封顶）、贷记卡 0.53%、扫码支付 0.23%。要求投标人持有支付业务许可证并有类似业绩。投标截止 2026 年 9 月 11 日。</td>
+      <td><span class="tag recruit">收单</span><span class="tag recruit">招标</span><span class="tag">费率</span></td>
+      <td><span class="importance imp-5">5</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">6</td>
+      <td class="id-col">case-006</td>
+      <td class="title-col">印尼央行扩大 QRIS 零费率至全部商户</td>
+      <td class="summary-col">印尼央行宣布扩大 QRIS 二维码支付零费率政策至全部商户类型，适用于单笔 10 万印尼盾以内的交易，2026 年 10 月 1 日实施。微型企业单笔 50 万盾以内零费率政策继续保留。该政策旨在降低商户交易成本，提升数字支付普及度，与《2030 年印尼支付系统蓝图》方向一致。</td>
+      <td><span class="tag">费率</span><span class="tag">收单</span><span class="tag policy">合规</span></td>
+      <td><span class="importance imp-4">4</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">7</td>
+      <td class="id-col">case-007</td>
+      <td class="title-col">英国 PSR 要求万事达/Visa 改善收单费率治理</td>
+      <td class="summary-col">英国支付系统监管机构（PSR）发布第 23 号指令，要求万事达和 Visa 改善其英国收单方收费的定价治理和记录保存。PSR 2025 年 3 月终裁报告发现：万事达和 Visa 的方案及处理费收入大幅增长，费用负担主要落在收单方而非发卡方，新收费缺乏成本驱动依据，价值定价反映的是客户支付意愿而非竞争结果。</td>
+      <td><span class="tag policy">合规</span><span class="tag">费率</span><span class="tag">收单</span><span class="tag">跨境收单</span></td>
+      <td><span class="importance imp-5">5</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">8</td>
+      <td class="id-col">case-008</td>
+      <td class="title-col">2026 年各大卡组织交换费率更新</td>
+      <td class="summary-col">2026 年各大卡组织更新交换费率。Visa 自 1 月 24 日起提高 3 级商业信用卡 Level 2 数据费率，4 月 16 日正式停用 Level 2 数据计划，推动商户提交增强数据以获得更低费率。万事达调整 World Elite 和 World 卡及商业卡费率。美国运通对小型商户推出分层定价。整体趋势是交换费结构更复杂，激励商户提交增强数据。</td>
+      <td><span class="tag">费率</span><span class="tag">收单</span><span class="tag policy">合规</span></td>
+      <td><span class="importance imp-4">4</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">9</td>
+      <td class="id-col">case-009</td>
+      <td class="title-col">CRISP & GREEN 健康餐饮明尼苏达扩张 <span class="draft-note">噪音</span></td>
+      <td class="summary-col">健康餐饮品牌 CRISP & GREEN 在明尼苏达州罗杰斯市开设第 22 家门店，由加盟合作伙伴 eatSmart Minnesota LLC 运营。品牌自 2016 年创立以来在全美已开设 53 家门店，主打健康快餐概念。</td>
+      <td><span class="tag">餐饮</span><span class="tag">连锁扩张</span><span class="tag">与收单无关</span></td>
+      <td><span class="importance imp-1">1</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">10</td>
+      <td class="id-col">case-010</td>
+      <td class="title-col">Salesforce Q2 财报营收 113 亿 <span class="draft-note">噪音</span></td>
+      <td class="summary-col">Salesforce 公布 2027 财年第二季度业绩：营收 113 亿美元同比增长 11%，cRPO 达 335 亿美元同比增长 14%，每股收益 4.29 美元同比增长 119%，自由现金流 11 亿美元同比增长 81%。CEO 称 AI 产品需求强劲，ARR 接近 40 亿美元。</td>
+      <td><span class="tag">企业软件</span><span class="tag">财报</span><span class="tag">CRM</span><span class="tag">与收单无关</span></td>
+      <td><span class="importance imp-1">1</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">11</td>
+      <td class="id-col">case-011</td>
+      <td class="title-col">万事达卡推出商户智能体套件 Agent Suite <span class="draft-note">待标注</span></td>
+      <td class="summary-col" style="color:var(--text-4);font-style:italic">（金标准摘要待标注）万事达卡推出面向商户的 Agent Suite 智能体套件，通过 Merchant Cloud 提供，可让商户将 AI 智能体体验融入自有网站，支持安全交易发起、凭证管理和身份验证。</td>
+      <td><span class="tag">AI 应用</span><span class="tag">收单</span></td>
+      <td><span class="importance imp-4">4</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">12</td>
+      <td class="id-col">case-012</td>
+      <td class="title-col">Walmart 终于支持 Apple Pay / Google Pay <span class="draft-note">待标注</span></td>
+      <td class="summary-col" style="color:var(--text-4);font-style:italic">（金标准摘要待标注）Walmart 从 8 月 24 日起在门店支持 Apple Pay 和 Google Pay，年底前全美推广。此前 Walmart 多年力推自有支付 Walmart Pay，最终妥协。Sam's Club 也将同步支持。</td>
+      <td><span class="tag">收单</span><span class="tag">数字钱包</span></td>
+      <td><span class="importance imp-3">3</span></td>
+    </tr>
+    <tr>
+      <td class="num-col">13</td>
+      <td class="id-col">case-013</td>
+      <td class="title-col">Nuvei 与 BlackLine 合作嵌入式支付 <span class="draft-note">待标注</span></td>
+      <td class="summary-col" style="color:var(--text-4);font-style:italic">（金标准摘要待标注）Nuvei 与 BlackLine 合作，将支付受理功能嵌入 BlackLine 的发票到现金平台，支持卡、银行转账和本地支付方式，自动匹配 incoming payments 到应收款，覆盖 190+ 市场、150 种货币。</td>
+      <td><span class="tag">收单</span><span class="tag">嵌入式支付</span><span class="tag">企业软件</span></td>
+      <td><span class="importance imp-4">4</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="summary-box">
+  <h3>📊 摘要金标准覆盖</h3>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>类型</th>
+        <th style="width:80px">条数</th>
+        <th>覆盖场景</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>核心银行 / 核心系统</td><td class="num-col">2</td><td>Temenos 升级、FIS 核心替换</td></tr>
+      <tr><td>费率 / 监管</td><td class="num-col">4</td><td>Visa/万事达和解、印尼 QRIS 零费率、英国 PSR、卡组织费率更新</td></tr>
+      <tr><td>收单招标</td><td class="num-col">1</td><td>哈尔滨银行收单招标</td></tr>
+      <tr><td>并购 / 投资</td><td class="num-col">1</td><td>Adyen 收购 Orb</td></tr>
+      <tr><td>噪音负样本</td><td class="num-col">2</td><td>餐饮扩张、CRM 财报（与收单无关）</td></tr>
+      <tr><td>新增待标注</td><td class="num-col">3</td><td>万事达智能体、Walmart 支持 Apple Pay、Nuvei 嵌入式支付</td></tr>
+      <tr style="font-weight:700"><td>合计</td><td class="num-col">13</td><td>—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ========== 打分金标准 ========== -->
+<h2 class="block-title" id="scoring-goldens">
+  <span class="block-tag scoring-tag">打分金标准</span>
+  40 条
+</h2>
+<p class="block-desc">
+  测三维打分准确度：泰国相关度、商机强度、时效性。评测方式为<b>数学指标</b>（MAE / 准确率），与人工标注直接对比，结果可复现。
+</p>
 
 <div class="criteria-box">
   <h3>📋 抽检判定口径</h3>
@@ -89,7 +295,7 @@
 <div class="section-title">
   <span class="cat-tag cat-a">A</span>
   收单 SaaS 厂商动态
-  <span class="count">8 条 · 微弱信号 2-4 分</span>
+  <span class="count">8 条 · 微弱信号</span>
 </div>
 <table>
   <thead>
@@ -98,9 +304,9 @@
       <th style="width:90px">ID</th>
       <th>标题</th>
       <th style="width:110px">发布日期</th>
-      <th style="width:130px">三维分（泰/商/时）</th>
-      <th style="width:200px">板块 / 二级菜单</th>
-      <th style="width:220px">标签</th>
+      <th style="width:140px">三维分（泰/商/时）</th>
+      <th style="width:210px">板块 / 二级菜单</th>
+      <th style="width:200px">标签</th>
     </tr>
   </thead>
   <tbody>
@@ -119,7 +325,7 @@
 <div class="section-title">
   <span class="cat-tag cat-b">B</span>
   收单独立部署项目
-  <span class="count">12 条 · 直接项目 8-10 分</span>
+  <span class="count">12 条 · 直接项目</span>
 </div>
 <table>
   <thead>
@@ -128,9 +334,9 @@
       <th style="width:90px">ID</th>
       <th>标题</th>
       <th style="width:110px">发布日期</th>
-      <th style="width:130px">三维分（泰/商/时）</th>
-      <th style="width:200px">板块 / 二级菜单</th>
-      <th style="width:220px">标签</th>
+      <th style="width:140px">三维分（泰/商/时）</th>
+      <th style="width:210px">板块 / 二级菜单</th>
+      <th style="width:200px">标签</th>
     </tr>
   </thead>
   <tbody>
@@ -162,9 +368,9 @@
       <th style="width:90px">ID</th>
       <th>标题</th>
       <th style="width:110px">发布日期</th>
-      <th style="width:130px">三维分（泰/商/时）</th>
-      <th style="width:200px">板块 / 二级菜单</th>
-      <th style="width:220px">标签</th>
+      <th style="width:140px">三维分（泰/商/时）</th>
+      <th style="width:210px">板块 / 二级菜单</th>
+      <th style="width:200px">标签</th>
     </tr>
   </thead>
   <tbody>
@@ -187,9 +393,9 @@
       <th style="width:90px">ID</th>
       <th>标题</th>
       <th style="width:110px">发布日期</th>
-      <th style="width:130px">三维分（泰/商/时）</th>
-      <th style="width:200px">板块 / 二级菜单</th>
-      <th style="width:220px">标签</th>
+      <th style="width:140px">三维分（泰/商/时）</th>
+      <th style="width:210px">板块 / 二级菜单</th>
+      <th style="width:200px">标签</th>
     </tr>
   </thead>
   <tbody>
@@ -214,9 +420,9 @@
       <th style="width:90px">ID</th>
       <th>标题</th>
       <th style="width:110px">发布日期</th>
-      <th style="width:130px">三维分（泰/商/时）</th>
-      <th style="width:200px">板块 / 二级菜单</th>
-      <th style="width:220px">标签</th>
+      <th style="width:140px">三维分（泰/商/时）</th>
+      <th style="width:210px">板块 / 二级菜单</th>
+      <th style="width:200px">标签</th>
     </tr>
   </thead>
   <tbody>
@@ -243,9 +449,9 @@
       <th style="width:90px">ID</th>
       <th>标题</th>
       <th style="width:110px">发布日期</th>
-      <th style="width:130px">三维分（泰/商/时）</th>
-      <th style="width:200px">板块 / 二级菜单</th>
-      <th style="width:220px">标签</th>
+      <th style="width:140px">三维分（泰/商/时）</th>
+      <th style="width:210px">板块 / 二级菜单</th>
+      <th style="width:200px">标签</th>
     </tr>
   </thead>
   <tbody>
@@ -257,15 +463,15 @@
   </tbody>
 </table>
 
-<!-- 场景覆盖统计 -->
+<!-- 打分场景覆盖统计 -->
 <div class="summary-box">
-  <h3>📊 场景覆盖统计</h3>
+  <h3>📊 打分金标准场景覆盖统计</h3>
   <table class="summary-table">
     <thead>
       <tr>
         <th>场景</th>
         <th style="width:80px">条数</th>
-        <th style="width:240px">三维分范围</th>
+        <th style="width:260px">三维分范围</th>
         <th>核心目的</th>
       </tr>
     </thead>
@@ -281,7 +487,7 @@
   </table>
 </div>
 
-<p style="text-align:center;color:var(--text-4);font-size:13px;margin-top:32px">共 40 条金标准 · 来源：eval/scoring_goldens.jsonl</p>
+<p style="text-align:center;color:var(--text-4);font-size:13px;margin-top:36px">共 53 条金标准 · 来源：eval/goldens.jsonl + eval/scoring_goldens.jsonl</p>
 
 <script src="./_shared/runtime.js"></script>
 </body>
