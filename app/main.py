@@ -421,8 +421,6 @@ FEEDBACK_HTML = """<!DOCTYPE html>
   </div>
 </div>
 <script>
-  // 飞书卡片按钮URL会解码一次percent-encoding，导致中文逗号等字符直接出现在URL中
-  // URLSearchParams无法处理这种情况，改用手动解析
   function parseQuery(raw) {
     const result = {};
     const q = raw.startsWith('?') ? raw.slice(1) : raw;
@@ -436,8 +434,13 @@ FEEDBACK_HTML = """<!DOCTYPE html>
     }
     return result;
   }
+  function b64DecodeUtf8(str) {
+    if (!str) return '';
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    return decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0)).slice(-2)).join(''));
+  }
   const q = parseQuery(window.location.search);
-  const title = q.title || '';
+  const title = b64DecodeUtf8(q.t || '');
   const url = q.url || '';
   const score = parseFloat(q.score || 0);
   const th = parseFloat(q.th || 0);

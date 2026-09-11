@@ -120,13 +120,14 @@ def send_intelligence_card(items: List[Dict]) -> bool:
         if item.get("weight_score") is not None:
             feedback_url = os.getenv("FEEDBACK_PAGE_URL", "")
             if feedback_url:
-                import urllib.parse
-                def _enc(v):
-                    return urllib.parse.quote(str(v), safe="")
+                import base64
+                title_b64 = base64.urlsafe_b64encode(
+                    item.get("title", "").encode("utf-8")
+                ).decode("ascii")
                 pairs = "&".join(
-                    f"{k}={_enc(v)}"
+                    f"{k}={v}"
                     for k, v in {
-                        "title": item.get("title", ""),
+                        "t": title_b64,
                         "url": url,
                         "score": item.get("weight_score", ""),
                         "th": item.get("thailand_relevance", ""),
