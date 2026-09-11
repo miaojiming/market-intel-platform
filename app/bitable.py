@@ -205,10 +205,13 @@ def add_feedback(feedback: Dict) -> Optional[str]:
 
     try:
         now_ms = int(time.time() * 1000)
+        # 反馈类型：英文 key → 中文（单选字段选项是中文）
+        feedback_type_raw = feedback.get("feedback_type", "")
+        feedback_type_cn = FEEDBACK_TYPES.get(feedback_type_raw, feedback_type_raw)
         fields = {
             "情报标题": feedback.get("item_title", ""),
             "原文链接": feedback.get("item_url", ""),
-            "反馈类型": feedback.get("feedback_type", ""),
+            "反馈类型": feedback_type_cn,
             "反馈人": feedback.get("user_name", ""),
             "反馈人ID": feedback.get("user_id", ""),
             "原权重分": feedback.get("original_scores", {}).get("weight_score"),
