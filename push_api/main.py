@@ -43,6 +43,9 @@ FALLBACK_MAX = int(os.getenv("FALLBACK_MAX", "5"))
 
 _token_cache = {"token": "", "expire_at": 0}
 
+# 反馈缓存：推送时存入情报数据，反馈页面通过短ID获取
+_feedback_cache: Dict[str, Dict] = {}
+
 app = FastAPI(title="Market Intel Push API", version="1.0.0")
 
 # CORS：允许 GitHub Pages 和本地开发
@@ -181,27 +184,21 @@ def send_intelligence_card(items: List[Dict], is_fallback: bool = False) -> bool
             "content": f"{head}\n{metrics}\n{tags_str}\n{summary}\n[原文链接({source})]({url})",
         })
 
-        # 反馈按钮
+        # 反馈按钮：用短ID避免URL编码问题
         fb_base = FEEDBACK_PAGE_URL
         if fb_base:
-            import base64
-            import urllib.parse as _ul
-            title_b64 = base64.urlsafe_b64encode(
-                item.get("title", "").encode("utf-8")
-            ).decode("ascii").rstrip("=")
-            pairs = "&".join(
-                f"{k}={_ul.quote(str(v), safe='')}"
-                for k, v in {
-                    "t": title_b64,
-                    "url": url,
-                    "score": item.get("weight_score", ""),
-                    "th": th,
-                    "op": op,
-                    "ti": ti,
-                    "src": "feishu_card",
-                }.items()
-            )
-            fb_url = fb_base + ("&" if "?" in fb_base else "?") + pairs
+            import uuid as _uuid
+            item_id = _uuid.uuid4().hex[:12]
+            _feedback_cache[item_id] = {
+                "title": item.get("title", ""),
+                "url": url,
+                "score": item.get("weight_score", ""),
+                "th": th,
+                "op": op,
+                "ti": ti,
+                "src": "feishu_card",
+            }
+            fb_url = fb_base + ("&" if "?" in fb_base else "?") + "id=" + item_id
             elements.append({
                 "tag": "action",
                 "actions": [
@@ -430,6 +427,15 @@ async def push_now(x_api_key: str = ""):
 # ==========================================
 # 用户反馈（数据飞轮）
 # ==========================================
+@app.get("/api/feedback/item")
+async def api_feedback_item(id: str = ""):
+    """通过短ID获取情报数据（反馈页面用）"""
+    data = _feedback_cache.get(id)
+    if not data:
+        raise HTTPException(status_code=404, detail="情报数据不存在或已过期")
+    return {"success": True, "data": data}
+
+
 @app.post("/api/feedback")
 async def api_feedback(request: Request):
     """提交用户反馈 → 写入飞书多维表格反馈表"""
@@ -586,49 +592,18 @@ FEEDBACK_HTML = """<!DOCTYPE html>
   </div>
 </div>
 <script>
-  function parseQuery(raw) {
-    var result = {};
-    var q = raw.charAt(0) === '?' ? raw.substring(1) : raw;
-    var pairs = q.split('&');
-    for (var i = 0; i < pairs.length; i++) {
-      var pair = pairs[i];
-      var idx = pair.indexOf('=');
-      if (idx < 0) continue;
-      var k = pair.substring(0, idx);
-      var v = pair.substring(idx + 1);
-      try { v = decodeURIComponent(v); } catch(e) {}
-      result[k] = v;
-    }
-    return result;
+  function getParam(name) {
+    var match = window.location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+    return match ? match[1] : '';
   }
-  function b64DecodeUtf8(str) {
-    if (!str) return '';
-    str = str.replace(/-/g, '+').replace(/_/g, '/');
-    while (str.length % 4) str += '=';
-    try {
-      var binary = atob(str);
-      var percentStr = '';
-      for (var i = 0; i < binary.length; i++) {
-        var hex = binary.charCodeAt(i).toString(16);
-        percentStr += '%' + (hex.length < 2 ? '0' + hex : hex);
-      }
-      return decodeURIComponent(percentStr);
-    } catch(e) {
-      return str;
-    }
-  }
-  var q = parseQuery(window.location.search);
-  var title = b64DecodeUtf8(q.t || '');
-  var url = q.url || '';
-  var score = parseFloat(q.score || 0);
-  var th = parseFloat(q.th || 0);
-  var op = parseFloat(q.op || 0);
-  var ti = parseFloat(q.ti || 0);
-  var preType = q.type || '';
-  var src = q.src || 'feishu_card';
+  var itemId = getParam('id');
+  var preType = getParam('type');
+  var title = '', url = '', src = 'feishu_card';
+  var score = 0, th = 0, op = 0, ti = 0;
   var selectedType = preType;
   function getApiUrl() { return window.location.origin; }
-  function init() {
+
+  function applyData() {
     document.getElementById('itemTitle').textContent = title || '未知情报';
     document.getElementById('scoreBadge').textContent = score + ' 分';
     document.getElementById('thBadge').textContent = '泰国相关 ' + th;
@@ -642,6 +617,31 @@ FEEDBACK_HTML = """<!DOCTYPE html>
       });
     });
   }
+
+  if (itemId) {
+    fetch(getApiUrl() + '/api/feedback/item?id=' + itemId)
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.success && res.data) {
+          title = res.data.title || '';
+          url = res.data.url || '';
+          score = parseFloat(res.data.score || 0);
+          th = parseFloat(res.data.th || 0);
+          op = parseFloat(res.data.op || 0);
+          ti = parseFloat(res.data.ti || 0);
+          src = res.data.src || 'feishu_card';
+          applyData();
+        } else {
+          document.getElementById('itemTitle').textContent = '情报数据加载失败';
+        }
+      })
+      .catch(function() {
+        document.getElementById('itemTitle').textContent = '情报数据加载失败';
+      });
+  } else {
+    applyData();
+  }
+
   function submitFeedback() {
     if (!selectedType) { document.getElementById('errorMsg').textContent = '请选择反馈类型'; return; }
     var apiUrl = getApiUrl();
