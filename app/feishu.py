@@ -121,9 +121,9 @@ def send_intelligence_card(items: List[Dict]) -> bool:
             feedback_url = os.getenv("FEEDBACK_PAGE_URL", "")
             if feedback_url:
                 import urllib.parse
-                # 用 quote 对值做百分号编码（不用 quote_plus），避免飞书卡片解码后 + 变空格
+                # 双重编码：飞书卡片渲染时会解码一次，双重编码后解码一次仍是合法的 percent-encoding
                 def _encode_val(v):
-                    return urllib.parse.quote(str(v), safe="")
+                    return urllib.parse.quote(urllib.parse.quote(str(v), safe=""), safe="")
 
                 pairs = "&".join(
                     f"{k}={_encode_val(v)}"
