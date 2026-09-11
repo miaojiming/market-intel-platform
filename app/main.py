@@ -12,6 +12,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.intelligence import run_intelligence_daily
@@ -329,6 +330,158 @@ async def api_feedback_stats():
     from app.bitable import get_feedback_stats
     stats = get_feedback_stats()
     return {"success": True, "data": stats}
+
+
+# ================ 反馈页面（数据飞轮） ================
+FEEDBACK_HTML = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情报反馈 - 市场情报与获客平台</title>
+<style>
+  :root {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-soft: #334155;
+    --text: #f1f5f9; --text-2: #94a3b8; --text-3: #64748b;
+    --border: #334155; --accent: #3b82f6; --accent-2: #8b5cf6;
+    --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; line-height: 1.6; }
+  .container { max-width: 560px; margin: 40px auto; }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .header p { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .item-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+  .score-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .score-badge { background: rgba(59,130,246,0.15); color: #93c5fd; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .feedback-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .feedback-option { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text-2); cursor: pointer; transition: all 0.2s; text-align: center; user-select: none; }
+  .feedback-option:hover { border-color: var(--accent); color: var(--text); }
+  .feedback-option.selected { background: rgba(59,130,246,0.2); border-color: var(--accent); color: #93c5fd; font-weight: 500; }
+  .feedback-option.useful.selected { background: rgba(16,185,129,0.2); border-color: var(--success); color: #6ee7b7; }
+  textarea { width: 100%; min-height: 80px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea::placeholder { color: var(--text-3); }
+  .submit-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 16px; }
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .success-page { text-align: center; padding: 40px 20px; }
+  .success-icon { font-size: 48px; margin-bottom: 16px; }
+  .success-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .success-desc { font-size: 13px; color: var(--text-2); margin-bottom: 20px; }
+  .error-msg { color: var(--danger); font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; }
+  @media (max-width: 480px) { .feedback-options { grid-template-columns: 1fr; } .container { margin: 20px auto; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>情报反馈</h1>
+    <p>你的反馈帮助我们持续优化模型</p>
+  </div>
+  <div id="feedbackForm">
+    <div class="card">
+      <div class="item-title" id="itemTitle">加载中...</div>
+      <div class="score-row">
+        <span class="score-badge" id="scoreBadge">-- 分</span>
+        <span class="score-badge" id="thBadge" style="background:rgba(16,185,129,0.15);color:#6ee7b7;">泰国相关 --</span>
+        <span class="score-badge" id="opBadge" style="background:rgba(245,158,11,0.15);color:#fcd34d;">商机强度 --</span>
+        <span class="score-badge" id="tiBadge" style="background:rgba(139,92,246,0.15);color:#c4b5fd;">时效性 --</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">这条情报哪里有问题？</div>
+      <div class="feedback-options">
+        <div class="feedback-option useful" data-type="useful">👍 有价值</div>
+        <div class="feedback-option" data-type="score_high">📈 打分偏高</div>
+        <div class="feedback-option" data-type="score_low">📉 打分偏低</div>
+        <div class="feedback-option" data-type="category_wrong">📂 分类错误</div>
+        <div class="feedback-option" data-type="summary_wrong">📝 摘要不准确</div>
+        <div class="feedback-option" data-type="tag_wrong">🏷️ 标签不对</div>
+        <div class="feedback-option" data-type="spam">🗑️ 噪音/无关</div>
+        <div class="feedback-option" data-type="other">❓ 其他</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">补充说明（可选）</div>
+      <textarea id="commentInput" placeholder="具体说说哪里有问题，或者正确的打分应该是怎样的..."></textarea>
+      <button class="submit-btn" id="submitBtn" onclick="submitFeedback()">提交反馈</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+  </div>
+  <div id="successPage" style="display:none;">
+    <div class="card success-page">
+      <div class="success-icon">✅</div>
+      <div class="success-title">感谢你的反馈！</div>
+      <div class="success-desc">我们会认真对待每一条反馈，<br>并将其纳入模型优化迭代。</div>
+    </div>
+  </div>
+</div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const title = params.get('title') || '';
+  const url = params.get('url') || '';
+  const score = parseFloat(params.get('score') || 0);
+  const th = parseFloat(params.get('th') || 0);
+  const op = parseFloat(params.get('op') || 0);
+  const ti = parseFloat(params.get('ti') || 0);
+  const preType = params.get('type') || '';
+  const src = params.get('src') || 'feishu_card';
+  let selectedType = preType;
+  function getApiUrl() { return window.location.origin; }
+  function init() {
+    document.getElementById('itemTitle').textContent = title || '未知情报';
+    document.getElementById('scoreBadge').textContent = score + ' 分';
+    document.getElementById('thBadge').textContent = '泰国相关 ' + th;
+    document.getElementById('opBadge').textContent = '商机强度 ' + op;
+    document.getElementById('tiBadge').textContent = '时效性 ' + ti;
+    if (preType) { const el = document.querySelector('.feedback-option[data-type="' + preType + '"]'); if (el) el.classList.add('selected'); }
+    document.querySelectorAll('.feedback-option').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.feedback-option').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected'); selectedType = el.dataset.type;
+      });
+    });
+  }
+  async function submitFeedback() {
+    if (!selectedType) { document.getElementById('errorMsg').textContent = '请选择反馈类型'; return; }
+    const apiUrl = getApiUrl();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = '提交中...';
+    document.getElementById('errorMsg').textContent = '';
+    const comment = document.getElementById('commentInput').value.trim();
+    try {
+      const resp = await fetch(apiUrl + '/api/feedback', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_title: title, item_url: url, feedback_type: selectedType,
+          original_scores: { weight_score: score, thailand_relevance: th, opportunity_strength: op, timeliness: ti },
+          comment: comment, source: src }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        document.getElementById('feedbackForm').style.display = 'none';
+        document.getElementById('successPage').style.display = 'block';
+      } else {
+        document.getElementById('errorMsg').textContent = data.detail || data.message || '提交失败，请重试';
+        btn.disabled = false; btn.textContent = '提交反馈';
+      }
+    } catch (e) {
+      document.getElementById('errorMsg').textContent = '网络错误：' + e.message;
+      btn.disabled = false; btn.textContent = '提交反馈';
+    }
+  }
+  init();
+</script>
+</body>
+</html>"""
+
+
+@app.get("/feedback.html", response_class=HTMLResponse)
+async def feedback_page():
+    return HTMLResponse(FEEDBACK_HTML)
 
 
 # ================ 定时任务 ================
