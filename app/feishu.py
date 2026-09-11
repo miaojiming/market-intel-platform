@@ -121,16 +121,23 @@ def send_intelligence_card(items: List[Dict]) -> bool:
             feedback_url = os.getenv("FEEDBACK_PAGE_URL", "")
             if feedback_url:
                 import urllib.parse
-                params = urllib.parse.urlencode({
-                    "title": item.get("title", ""),
-                    "url": url,
-                    "score": item.get("weight_score", ""),
-                    "th": item.get("thailand_relevance", ""),
-                    "op": item.get("opportunity_strength", ""),
-                    "ti": item.get("timeliness", ""),
-                    "src": "feishu_card",
-                })
-                fb_url = feedback_url + ("&" if "?" in feedback_url else "?") + params
+                # 用 quote 对值做百分号编码（不用 quote_plus），避免飞书卡片解码后 + 变空格
+                def _encode_val(v):
+                    return urllib.parse.quote(str(v), safe="")
+
+                pairs = "&".join(
+                    f"{k}={_encode_val(v)}"
+                    for k, v in {
+                        "title": item.get("title", ""),
+                        "url": url,
+                        "score": item.get("weight_score", ""),
+                        "th": item.get("thailand_relevance", ""),
+                        "op": item.get("opportunity_strength", ""),
+                        "ti": item.get("timeliness", ""),
+                        "src": "feishu_card",
+                    }.items()
+                )
+                fb_url = feedback_url + ("&" if "?" in feedback_url else "?") + pairs
                 elements.append({
                     "tag": "action",
                     "actions": [
