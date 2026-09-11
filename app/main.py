@@ -433,55 +433,30 @@ FEEDBACK_HTML = """<!DOCTYPE html>
   </div>
 </div>
 <script>
-  function getParam(name) {
-    var match = window.location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
-    return match ? match[1] : '';
-  }
-  var itemId = getParam('id');
-  var preType = getParam('type');
-  var title = '', url = '', src = 'feishu_card';
-  var score = 0, th = 0, op = 0, ti = 0;
+  var payload = __PAYLOAD__;
+  var title = payload.title || '';
+  var url = payload.url || '';
+  var score = parseFloat(payload.score || 0);
+  var th = parseFloat(payload.th || 0);
+  var op = parseFloat(payload.op || 0);
+  var ti = parseFloat(payload.ti || 0);
+  var src = payload.src || 'feishu_card';
+  var preType = '__PRETYPE__';
   var selectedType = preType;
   function getApiUrl() { return window.location.origin; }
 
-  function applyData() {
-    document.getElementById('itemTitle').textContent = title || '未知情报';
-    document.getElementById('scoreBadge').textContent = score + ' 分';
-    document.getElementById('thBadge').textContent = '泰国相关 ' + th;
-    document.getElementById('opBadge').textContent = '商机强度 ' + op;
-    document.getElementById('tiBadge').textContent = '时效性 ' + ti;
-    if (preType) { var el = document.querySelector('.feedback-option[data-type="' + preType + '"]'); if (el) el.classList.add('selected'); }
-    document.querySelectorAll('.feedback-option').forEach(function(el) {
-      el.addEventListener('click', function() {
-        document.querySelectorAll('.feedback-option').forEach(function(e) { e.classList.remove('selected'); });
-        el.classList.add('selected'); selectedType = el.dataset.type;
-      });
+  document.getElementById('itemTitle').textContent = title || '未知情报';
+  document.getElementById('scoreBadge').textContent = score + ' 分';
+  document.getElementById('thBadge').textContent = '泰国相关 ' + th;
+  document.getElementById('opBadge').textContent = '商机强度 ' + op;
+  document.getElementById('tiBadge').textContent = '时效性 ' + ti;
+  if (preType) { var el = document.querySelector('.feedback-option[data-type="' + preType + '"]'); if (el) el.classList.add('selected'); }
+  document.querySelectorAll('.feedback-option').forEach(function(el) {
+    el.addEventListener('click', function() {
+      document.querySelectorAll('.feedback-option').forEach(function(e) { e.classList.remove('selected'); });
+      el.classList.add('selected'); selectedType = el.dataset.type;
     });
-  }
-
-  if (itemId) {
-    fetch(getApiUrl() + '/api/feedback/item?id=' + itemId)
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res.success && res.data) {
-          title = res.data.title || '';
-          url = res.data.url || '';
-          score = parseFloat(res.data.score || 0);
-          th = parseFloat(res.data.th || 0);
-          op = parseFloat(res.data.op || 0);
-          ti = parseFloat(res.data.ti || 0);
-          src = res.data.src || 'feishu_card';
-          applyData();
-        } else {
-          document.getElementById('itemTitle').textContent = '情报数据加载失败';
-        }
-      })
-      .catch(function() {
-        document.getElementById('itemTitle').textContent = '情报数据加载失败';
-      });
-  } else {
-    applyData();
-  }
+  });
 
   function submitFeedback() {
     if (!selectedType) { document.getElementById('errorMsg').textContent = '请选择反馈类型'; return; }
@@ -514,8 +489,13 @@ FEEDBACK_HTML = """<!DOCTYPE html>
 
 
 @app.get("/feedback.html", response_class=HTMLResponse)
-async def feedback_page():
-    return HTMLResponse(FEEDBACK_HTML)
+async def feedback_page(id: str = "", type: str = ""):
+    """反馈页面：数据服务端内嵌，避免前端 fetch 依赖"""
+    data = _feedback_cache.get(id, {})
+    payload = json.dumps(data, ensure_ascii=True)
+    html = FEEDBACK_HTML.replace("__PAYLOAD__", payload)
+    html = html.replace("__PRETYPE__", type or "")
+    return HTMLResponse(html)
 
 
 # ================ 定时任务 ================
