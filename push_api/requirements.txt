@@ -2,4 +2,9 @@ fastapi==0.115.0
 uvicorn==0.30.6
 requests==2.32.3
 pydantic==2.9.2
-# force rebuild
+python-dotenv==1.0.0
+httpx==0.26.0
+feedparser==6.0.11
+beautifulsoup4==4.12.3
+lark-oapi==1.7.3
+apscheduler==3.10.4
