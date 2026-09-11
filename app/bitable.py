@@ -212,7 +212,6 @@ def add_feedback(feedback: Dict):
         feedback_type_cn = FEEDBACK_TYPES.get(feedback_type_raw, feedback_type_raw)
         fields = {
             "情报标题": feedback.get("item_title", ""),
-            "原文链接": feedback.get("item_url", ""),
             "反馈类型": feedback_type_cn,
             "反馈人": feedback.get("user_name", ""),
             "反馈人ID": feedback.get("user_id", ""),
@@ -225,6 +224,10 @@ def add_feedback(feedback: Dict):
             "处理状态": "待处理",
             "反馈时间": now_ms,
         }
+        # url 字段必须传 {"text":..., "link":...} 对象，裸字符串报 URLFieldConvFail
+        item_url = feedback.get("item_url", "")
+        if item_url:
+            fields["原文链接"] = {"text": item_url, "link": item_url}
         # 过滤 None 值
         fields = {k: v for k, v in fields.items() if v is not None}
 
