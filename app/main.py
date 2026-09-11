@@ -318,7 +318,7 @@ async def api_feedback(request: Request):
 
     from app.bitable import add_feedback
 
-    rec_id = add_feedback({
+    rec_id, error = add_feedback({
         "item_title": body.get("item_title", ""),
         "item_url": body.get("item_url", ""),
         "feedback_type": feedback_type,
@@ -332,8 +332,8 @@ async def api_feedback(request: Request):
     if rec_id:
         return {"success": True, "record_id": rec_id, "message": "反馈提交成功"}
     else:
-        # 可能是没配置反馈表，但不要报 500，告诉用户已记录
-        return {"success": True, "record_id": "", "message": "反馈已收到，感谢你的反馈"}
+        # 暴露具体错误，便于诊断（未配置表 / 字段不匹配 / 权限等）
+        return {"success": False, "record_id": "", "message": f"反馈写入失败: {error}"}
 
 
 @app.get("/api/feedback/stats")

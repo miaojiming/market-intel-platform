@@ -185,9 +185,10 @@ FEEDBACK_TYPES = {
 }
 
 
-def add_feedback(feedback: Dict) -> Optional[str]:
+def add_feedback(feedback: Dict):
     """
     写入一条用户反馈到反馈表
+    返回 (record_id, error_msg)：成功 record_id 非空、error_msg 为空；失败反之
     feedback: {
         item_title: 情报标题,
         item_url: 原文链接,
@@ -200,8 +201,9 @@ def add_feedback(feedback: Dict) -> Optional[str]:
     }
     """
     if not FEEDBACK_TABLE_ID:
-        print("[Bitable] 未配置 FEEDBACK_TABLE_ID，跳过反馈写入")
-        return None
+        msg = "未配置 FEEDBACK_TABLE_ID"
+        print(f"[Bitable] {msg}")
+        return None, msg
 
     try:
         now_ms = int(time.time() * 1000)
@@ -237,13 +239,15 @@ def add_feedback(feedback: Dict) -> Optional[str]:
         if data.get("code") == 0:
             rec_id = data.get("data", {}).get("record", {}).get("record_id", "")
             print(f"[Bitable] 反馈已写入: {feedback.get('feedback_type')} - {feedback.get('item_title', '')[:30]}")
-            return rec_id
+            return rec_id, ""
         else:
-            print(f"[Bitable] 反馈写入失败: code={data.get('code')}, msg={data.get('msg')}")
-            return None
+            msg = f"code={data.get('code')}, msg={data.get('msg')}"
+            print(f"[Bitable] 反馈写入失败: {msg}")
+            return None, msg
     except Exception as e:
-        print(f"[Bitable] 反馈写入异常: {e}")
-        return None
+        msg = f"异常: {e}"
+        print(f"[Bitable] 反馈写入异常: {msg}")
+        return None, msg
 
 
 def get_feedback_stats() -> Dict:
