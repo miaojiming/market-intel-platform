@@ -120,23 +120,19 @@ def send_intelligence_card(items: List[Dict]) -> bool:
         if item.get("weight_score") is not None:
             feedback_url = os.getenv("FEEDBACK_PAGE_URL", "")
             if feedback_url:
-                import base64
-                title_b64 = base64.urlsafe_b64encode(
-                    item.get("title", "").encode("utf-8")
-                ).decode("ascii")
-                pairs = "&".join(
-                    f"{k}={v}"
-                    for k, v in {
-                        "t": title_b64,
-                        "url": url,
-                        "score": item.get("weight_score", ""),
-                        "th": item.get("thailand_relevance", ""),
-                        "op": item.get("opportunity_strength", ""),
-                        "ti": item.get("timeliness", ""),
-                        "src": "feishu_card",
-                    }.items()
-                )
-                fb_url = feedback_url + ("&" if "?" in feedback_url else "?") + pairs
+                import uuid as _uuid
+                from app.main import _feedback_cache
+                item_id = _uuid.uuid4().hex[:12]
+                _feedback_cache[item_id] = {
+                    "title": item.get("title", ""),
+                    "url": url,
+                    "score": item.get("weight_score", ""),
+                    "th": item.get("thailand_relevance", ""),
+                    "op": item.get("opportunity_strength", ""),
+                    "ti": item.get("timeliness", ""),
+                    "src": "feishu_card",
+                }
+                fb_url = feedback_url + ("&" if "?" in feedback_url else "?") + "id=" + item_id
                 elements.append({
                     "tag": "action",
                     "actions": [

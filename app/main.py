@@ -30,6 +30,9 @@ load_dotenv()
 
 app = FastAPI(title="市场智能情报与获客平台 MVP")
 
+# 反馈缓存：推送时存入情报数据，反馈页面通过短ID获取
+_feedback_cache: dict = {}
+
 # CORS：允许仪表盘跨域调用
 app.add_middleware(
     CORSMiddleware,
@@ -282,6 +285,15 @@ def _do_push_now():
 
 
 # ================ 用户反馈（数据飞轮） ================
+@app.get("/api/feedback/item")
+async def api_feedback_item(id: str = ""):
+    """通过短ID获取情报数据（反馈页面用）"""
+    data = _feedback_cache.get(id)
+    if not data:
+        raise HTTPException(status_code=404, detail="情报数据不存在或已过期")
+    return {"success": True, "data": data}
+
+
 @app.post("/api/feedback")
 async def api_feedback(request: Request):
     """
@@ -421,77 +433,81 @@ FEEDBACK_HTML = """<!DOCTYPE html>
   </div>
 </div>
 <script>
-  function parseQuery(raw) {
-    const result = {};
-    const q = raw.startsWith('?') ? raw.slice(1) : raw;
-    for (const pair of q.split('&')) {
-      const idx = pair.indexOf('=');
-      if (idx < 0) continue;
-      const k = pair.slice(0, idx);
-      let v = pair.slice(idx + 1);
-      try { v = decodeURIComponent(v); } catch(e) { v = v; }
-      result[k] = v;
-    }
-    return result;
+  function getParam(name) {
+    var match = window.location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+    return match ? match[1] : '';
   }
-  function b64DecodeUtf8(str) {
-    if (!str) return '';
-    str = str.replace(/-/g, '+').replace(/_/g, '/');
-    return decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0)).slice(-2)).join(''));
-  }
-  const q = parseQuery(window.location.search);
-  const title = b64DecodeUtf8(q.t || '');
-  const url = q.url || '';
-  const score = parseFloat(q.score || 0);
-  const th = parseFloat(q.th || 0);
-  const op = parseFloat(q.op || 0);
-  const ti = parseFloat(q.ti || 0);
-  const preType = q.type || '';
-  const src = q.src || 'feishu_card';
-  let selectedType = preType;
+  var itemId = getParam('id');
+  var preType = getParam('type');
+  var title = '', url = '', src = 'feishu_card';
+  var score = 0, th = 0, op = 0, ti = 0;
+  var selectedType = preType;
   function getApiUrl() { return window.location.origin; }
-  function init() {
+
+  function applyData() {
     document.getElementById('itemTitle').textContent = title || '未知情报';
     document.getElementById('scoreBadge').textContent = score + ' 分';
     document.getElementById('thBadge').textContent = '泰国相关 ' + th;
     document.getElementById('opBadge').textContent = '商机强度 ' + op;
     document.getElementById('tiBadge').textContent = '时效性 ' + ti;
-    if (preType) { const el = document.querySelector('.feedback-option[data-type="' + preType + '"]'); if (el) el.classList.add('selected'); }
-    document.querySelectorAll('.feedback-option').forEach(el => {
-      el.addEventListener('click', () => {
-        document.querySelectorAll('.feedback-option').forEach(e => e.classList.remove('selected'));
+    if (preType) { var el = document.querySelector('.feedback-option[data-type="' + preType + '"]'); if (el) el.classList.add('selected'); }
+    document.querySelectorAll('.feedback-option').forEach(function(el) {
+      el.addEventListener('click', function() {
+        document.querySelectorAll('.feedback-option').forEach(function(e) { e.classList.remove('selected'); });
         el.classList.add('selected'); selectedType = el.dataset.type;
       });
     });
   }
-  async function submitFeedback() {
+
+  if (itemId) {
+    fetch(getApiUrl() + '/api/feedback/item?id=' + itemId)
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.success && res.data) {
+          title = res.data.title || '';
+          url = res.data.url || '';
+          score = parseFloat(res.data.score || 0);
+          th = parseFloat(res.data.th || 0);
+          op = parseFloat(res.data.op || 0);
+          ti = parseFloat(res.data.ti || 0);
+          src = res.data.src || 'feishu_card';
+          applyData();
+        } else {
+          document.getElementById('itemTitle').textContent = '情报数据加载失败';
+        }
+      })
+      .catch(function() {
+        document.getElementById('itemTitle').textContent = '情报数据加载失败';
+      });
+  } else {
+    applyData();
+  }
+
+  function submitFeedback() {
     if (!selectedType) { document.getElementById('errorMsg').textContent = '请选择反馈类型'; return; }
-    const apiUrl = getApiUrl();
-    const btn = document.getElementById('submitBtn');
+    var apiUrl = getApiUrl();
+    var btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = '提交中...';
     document.getElementById('errorMsg').textContent = '';
-    const comment = document.getElementById('commentInput').value.trim();
-    try {
-      const resp = await fetch(apiUrl + '/api/feedback', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item_title: title, item_url: url, feedback_type: selectedType,
-          original_scores: { weight_score: score, thailand_relevance: th, opportunity_strength: op, timeliness: ti },
-          comment: comment, source: src }),
-      });
-      const data = await resp.json();
-      if (resp.ok && data.success) {
+    var comment = document.getElementById('commentInput').value.trim();
+    fetch(apiUrl + '/api/feedback', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item_title: title, item_url: url, feedback_type: selectedType,
+        original_scores: { weight_score: score, thailand_relevance: th, opportunity_strength: op, timeliness: ti },
+        comment: comment, source: src }),
+    }).then(function(resp) { return resp.json(); }).then(function(data) {
+      if (data.success) {
         document.getElementById('feedbackForm').style.display = 'none';
         document.getElementById('successPage').style.display = 'block';
       } else {
         document.getElementById('errorMsg').textContent = data.detail || data.message || '提交失败，请重试';
         btn.disabled = false; btn.textContent = '提交反馈';
       }
-    } catch (e) {
+    }).catch(function(e) {
       document.getElementById('errorMsg').textContent = '网络错误：' + e.message;
       btn.disabled = false; btn.textContent = '提交反馈';
-    }
+    });
   }
-  init();
 </script>
 </body>
 </html>"""
