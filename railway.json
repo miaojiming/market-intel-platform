@@ -4,7 +4,8 @@
     "builder": "NIXPACKS",
     "buildCommand": "pip install -r push_api/requirements.txt",
     "watchPatterns": [
-      "push_api/**"
+      "push_api/**",
+      "dashboard/**"
     ]
   },
   "deploy": {

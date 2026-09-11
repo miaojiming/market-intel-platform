@@ -2,14 +2,20 @@
 Railway 部署的轻量 API 服务
 - 仪表盘「立即推送」按钮的后端代理
 - 从飞书多维表格读取高价值情报 → 飞书 webhook 推送
+- 用户反馈收集（数据飞轮）→ 写入飞书多维表格反馈表
+- 静态托管仪表盘页面（index.html / feedback.html）
 """
 import os
 import time
+import urllib.parse
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import requests
 
@@ -22,6 +28,8 @@ APP_SECRET = os.getenv("FEISHU_APP_SECRET", "")
 BITABLE_APP_TOKEN = os.getenv("BITABLE_APP_TOKEN", "")
 BITABLE_TABLE_ID = os.getenv("BITABLE_TABLE_ID", "")
 WEBHOOK_URL = os.getenv("FEISHU_WEBHOOK_URL", "")
+FEEDBACK_TABLE_ID = os.getenv("FEEDBACK_TABLE_ID", "")
+FEEDBACK_PAGE_URL = os.getenv("FEEDBACK_PAGE_URL", "")
 
 # API Key 认证（简单保护，防止滥用）
 API_KEY = os.getenv("PUSH_API_KEY", "")
@@ -172,6 +180,38 @@ def send_intelligence_card(items: List[Dict], is_fallback: bool = False) -> bool
             "tag": "markdown",
             "content": f"{head}\n{metrics}\n{tags_str}\n{summary}\n[原文链接({source})]({url})",
         })
+
+        # 反馈按钮
+        fb_base = FEEDBACK_PAGE_URL
+        if fb_base:
+            params = urllib.parse.urlencode({
+                "title": item.get("title", ""),
+                "url": url,
+                "score": item.get("weight_score", ""),
+                "th": th,
+                "op": op,
+                "ti": ti,
+                "src": "feishu_card",
+            })
+            fb_url = fb_base + ("&" if "?" in fb_base else "?") + params
+            elements.append({
+                "tag": "action",
+                "actions": [
+                    {
+                        "tag": "button",
+                        "text": {"tag": "plain_text", "content": "👍 有价值"},
+                        "type": "default",
+                        "url": fb_url + "&type=useful",
+                    },
+                    {
+                        "tag": "button",
+                        "text": {"tag": "plain_text", "content": "👎 不准"},
+                        "type": "default",
+                        "url": fb_url + "&type=score_low",
+                    },
+                ],
+            })
+
         if i < min(len(items), PUSH_MAX):
             elements.append({"tag": "hr"})
 
@@ -202,6 +242,114 @@ def send_intelligence_card(items: List[Dict], is_fallback: bool = False) -> bool
     except Exception as e:
         print(f"[Feishu] 情报卡片发送失败: {e}")
         return False
+
+
+# ==========================================
+# 反馈表操作（数据飞轮）
+# ==========================================
+FEEDBACK_TYPES = {
+    "score_high": "打分偏高",
+    "score_low": "打分偏低",
+    "category_wrong": "分类错误",
+    "summary_wrong": "摘要不准确",
+    "tag_wrong": "标签不对",
+    "spam": "噪音/无关",
+    "useful": "有价值",
+}
+
+
+def add_feedback(feedback: Dict) -> Optional[str]:
+    """写入一条用户反馈到飞书多维表格反馈表"""
+    if not FEEDBACK_TABLE_ID:
+        print("[Feedback] 未配置 FEEDBACK_TABLE_ID，跳过写入")
+        return None
+    if not BITABLE_APP_TOKEN:
+        print("[Feedback] 未配置 BITABLE_APP_TOKEN")
+        return None
+
+    try:
+        now_ms = int(time.time() * 1000)
+        fields = {
+            "情报标题": feedback.get("item_title", ""),
+            "原文链接": feedback.get("item_url", ""),
+            "反馈类型": feedback.get("feedback_type", ""),
+            "反馈人": feedback.get("user_name", "匿名用户"),
+            "反馈人ID": feedback.get("user_id", ""),
+            "原权重分": feedback.get("original_scores", {}).get("weight_score"),
+            "原泰国相关度": feedback.get("original_scores", {}).get("thailand_relevance"),
+            "原商机强度": feedback.get("original_scores", {}).get("opportunity_strength"),
+            "原时效性": feedback.get("original_scores", {}).get("timeliness"),
+            "备注": feedback.get("comment", ""),
+            "来源": feedback.get("source", "飞书卡片"),
+            "处理状态": "待处理",
+            "反馈时间": now_ms,
+        }
+        fields = {k: v for k, v in fields.items() if v is not None}
+
+        resp = requests.post(
+            f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
+            f"/tables/{FEEDBACK_TABLE_ID}/records",
+            headers={
+                "Authorization": f"Bearer {get_tenant_token()}",
+                "Content-Type": "application/json",
+            },
+            json={"fields": fields},
+            timeout=20,
+        )
+        data = resp.json()
+        if data.get("code") == 0:
+            rec_id = data.get("data", {}).get("record", {}).get("record_id", "")
+            print(f"[Feedback] 反馈已写入: {feedback.get('feedback_type')} - {feedback.get('item_title', '')[:30]}")
+            return rec_id
+        else:
+            print(f"[Feedback] 写入失败: code={data.get('code')}, msg={data.get('msg')}")
+            return None
+    except Exception as e:
+        print(f"[Feedback] 写入异常: {e}")
+        return None
+
+
+def get_feedback_stats() -> Dict:
+    """获取反馈统计数据"""
+    if not FEEDBACK_TABLE_ID or not BITABLE_APP_TOKEN:
+        return {"total": 0, "by_type": {}, "pending": 0}
+
+    try:
+        items = []
+        page_token = ""
+        while True:
+            params = {"page_size": 200}
+            if page_token:
+                params["page_token"] = page_token
+            resp = requests.get(
+                f"{FEISHU_HOST}/open-apis/bitable/v1/apps/{BITABLE_APP_TOKEN}"
+                f"/tables/{FEEDBACK_TABLE_ID}/records",
+                headers={"Authorization": f"Bearer {get_tenant_token()}"},
+                params=params,
+                timeout=20,
+            )
+            body = resp.json()
+            if body.get("code") != 0:
+                return {"total": 0, "by_type": {}, "pending": 0}
+            data = body.get("data", {})
+            items.extend(data.get("items", []) or [])
+            if len(items) >= 500 or not data.get("has_more"):
+                break
+            page_token = data.get("page_token", "")
+
+        by_type = {}
+        pending = 0
+        for rec in items:
+            fields = rec.get("fields", {})
+            ftype = fields.get("反馈类型", "未知")
+            by_type[ftype] = by_type.get(ftype, 0) + 1
+            if fields.get("处理状态", "待处理") == "待处理":
+                pending += 1
+
+        return {"total": len(items), "by_type": by_type, "pending": pending}
+    except Exception as e:
+        print(f"[Feedback] 统计失败: {e}")
+        return {"total": 0, "by_type": {}, "pending": 0}
 
 
 # ==========================================
@@ -271,13 +419,66 @@ async def push_now(x_api_key: str = ""):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ==========================================
+# 用户反馈（数据飞轮）
+# ==========================================
+@app.post("/api/feedback")
+async def api_feedback(request: Request):
+    """提交用户反馈 → 写入飞书多维表格反馈表"""
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="无效的请求体")
+
+    feedback_type = body.get("feedback_type", "")
+    if not feedback_type:
+        raise HTTPException(status_code=400, detail="feedback_type 必填")
+
+    rec_id = add_feedback({
+        "item_title": body.get("item_title", ""),
+        "item_url": body.get("item_url", ""),
+        "feedback_type": feedback_type,
+        "user_name": body.get("user_name", "匿名用户"),
+        "user_id": body.get("user_id", ""),
+        "original_scores": body.get("original_scores", {}),
+        "comment": body.get("comment", ""),
+        "source": body.get("source", "web"),
+    })
+
+    if rec_id:
+        return {"success": True, "record_id": rec_id, "message": "反馈提交成功"}
+    return {"success": True, "record_id": "", "message": "反馈已收到，感谢你的反馈"}
+
+
+@app.get("/api/feedback/stats")
+async def api_feedback_stats():
+    """获取反馈统计数据（仪表盘 KPI 卡片用）"""
+    stats = get_feedback_stats()
+    return {"success": True, "data": stats}
+
+
 @app.get("/")
 async def root():
     return {
         "name": "Market Intel Push API",
-        "version": "1.0.0",
-        "endpoints": ["/api/health", "/api/push-now"],
+        "version": "2.0.0",
+        "endpoints": ["/api/health", "/api/push-now", "/api/feedback", "/api/feedback/stats"],
     }
+
+
+# ==========================================
+# 静态页面托管（仪表盘 + 反馈页）
+# ==========================================
+_dashboard_dir = Path(__file__).resolve().parent.parent / "dashboard"
+if _dashboard_dir.is_dir():
+    app.mount("/dashboard", StaticFiles(directory=str(_dashboard_dir), html=True), name="dashboard")
+
+    @app.get("/feedback.html", response_class=HTMLResponse)
+    async def feedback_page():
+        fb_file = _dashboard_dir / "feedback.html"
+        if fb_file.exists():
+            return HTMLResponse(fb_file.read_text(encoding="utf-8"))
+        raise HTTPException(status_code=404, detail="feedback.html not found")
 
 
 if __name__ == "__main__":
