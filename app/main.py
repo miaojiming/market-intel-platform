@@ -421,15 +421,30 @@ FEEDBACK_HTML = """<!DOCTYPE html>
   </div>
 </div>
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const title = params.get('title') || '';
-  const url = params.get('url') || '';
-  const score = parseFloat(params.get('score') || 0);
-  const th = parseFloat(params.get('th') || 0);
-  const op = parseFloat(params.get('op') || 0);
-  const ti = parseFloat(params.get('ti') || 0);
-  const preType = params.get('type') || '';
-  const src = params.get('src') || 'feishu_card';
+  // 飞书卡片按钮URL会解码一次percent-encoding，导致中文逗号等字符直接出现在URL中
+  // URLSearchParams无法处理这种情况，改用手动解析
+  function parseQuery(raw) {
+    const result = {};
+    const q = raw.startsWith('?') ? raw.slice(1) : raw;
+    for (const pair of q.split('&')) {
+      const idx = pair.indexOf('=');
+      if (idx < 0) continue;
+      const k = pair.slice(0, idx);
+      let v = pair.slice(idx + 1);
+      try { v = decodeURIComponent(v); } catch(e) { v = v; }
+      result[k] = v;
+    }
+    return result;
+  }
+  const q = parseQuery(window.location.search);
+  const title = q.title || '';
+  const url = q.url || '';
+  const score = parseFloat(q.score || 0);
+  const th = parseFloat(q.th || 0);
+  const op = parseFloat(q.op || 0);
+  const ti = parseFloat(q.ti || 0);
+  const preType = q.type || '';
+  const src = q.src || 'feishu_card';
   let selectedType = preType;
   function getApiUrl() { return window.location.origin; }
   function init() {
